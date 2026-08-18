@@ -1,0 +1,502 @@
+[
+  {
+    "id": 1,
+    "category": "decouverte_generale",
+    "prompt_fr": "Je cherche un bureau pour mon équipe de 8 personnes à Paris, par où je commence ?"
+  },
+  {
+    "id": 2,
+    "category": "decouverte_generale",
+    "prompt_fr": "Quelles sont les meilleures options pour louer un espace de bureau flexible à Paris en ce moment ?"
+  },
+  {
+    "id": 3,
+    "category": "decouverte_generale",
+    "prompt_fr": "C'est quoi la différence entre coworking et bureau privé flexible ?"
+  },
+  {
+    "id": 4,
+    "category": "decouverte_generale",
+    "prompt_fr": "Peux-tu me conseiller un opérateur d'espaces de bureaux à Paris pour une petite entreprise ?"
+  },
+  {
+    "id": 5,
+    "category": "decouverte_generale",
+    "prompt_fr": "Comment trouver un bureau à louer rapidement à Paris sans passer par une agence immobilière classique ?"
+  },
+  {
+    "id": 6,
+    "category": "decouverte_generale",
+    "prompt_fr": "Quelles solutions existent pour une startup qui a besoin de bureaux flexibles à Paris ?"
+  },
+  {
+    "id": 7,
+    "category": "decouverte_generale",
+    "prompt_fr": "C'est quoi un 'bureau opéré' exactement, et en quoi ça diffère d'un espace de coworking classique ?"
+  },
+  {
+    "id": 8,
+    "category": "decouverte_generale",
+    "prompt_fr": "Je ne connais rien au marché des bureaux flexibles à Paris, tu peux m'expliquer les grandes options ?"
+  },
+  {
+    "id": 9,
+    "category": "bail_classique_vs_flex",
+    "prompt_fr": "Quels sont les avantages d'un bureau flexible par rapport à un bail commercial classique ?"
+  },
+  {
+    "id": 10,
+    "category": "bail_classique_vs_flex",
+    "prompt_fr": "Est-ce que ça vaut le coup de prendre un bail 3-6-9 pour une petite équipe à Paris ou mieux vaut du flexible ?"
+  },
+  {
+    "id": 11,
+    "category": "bail_classique_vs_flex",
+    "prompt_fr": "Combien coûte un bureau flexible à Paris par rapport à un bail traditionnel ?"
+  },
+  {
+    "id": 12,
+    "category": "bail_classique_vs_flex",
+    "prompt_fr": "Je veux éviter de m'engager sur un bail long à Paris, quelles alternatives j'ai ?"
+  },
+  {
+    "id": 13,
+    "category": "bail_classique_vs_flex",
+    "prompt_fr": "Quels sont les pièges à éviter en signant un bail commercial classique à Paris ?"
+  },
+  {
+    "id": 14,
+    "category": "bail_classique_vs_flex",
+    "prompt_fr": "Un bail 3-6-9 a-t-il encore du sens pour une PME de 20 personnes à Paris en 2026 ?"
+  },
+  {
+    "id": 15,
+    "category": "bail_classique_vs_flex",
+    "prompt_fr": "Quelle est la différence de coût total entre un bureau opéré et un bail classique sur 3 ans ?"
+  },
+  {
+    "id": 16,
+    "category": "bail_classique_vs_flex",
+    "prompt_fr": "Je sors d'un bail commercial et je ne veux plus m'engager sur plusieurs années, que me conseilles-tu ?"
+  },
+  {
+    "id": 17,
+    "category": "comparaison_direct_coworking",
+    "prompt_fr": "WeWork vs Wojo, lequel choisir pour une équipe à Paris ?"
+  },
+  {
+    "id": 18,
+    "category": "comparaison_direct_coworking",
+    "prompt_fr": "Quelles sont les alternatives à WeWork à Paris ?"
+  },
+  {
+    "id": 19,
+    "category": "comparaison_direct_coworking",
+    "prompt_fr": "Morning Coworking ou Spaces, qu'est-ce qui les différencie à Paris ?"
+  },
+  {
+    "id": 20,
+    "category": "comparaison_direct_coworking",
+    "prompt_fr": "Kwerk propose quoi de différent par rapport aux autres espaces de coworking parisiens ?"
+  },
+  {
+    "id": 21,
+    "category": "comparaison_direct_coworking",
+    "prompt_fr": "Quel est le meilleur espace de coworking à Paris en 2026 ?"
+  },
+  {
+    "id": 22,
+    "category": "comparaison_direct_coworking",
+    "prompt_fr": "Je compare plusieurs espaces de coworking parisiens, sur quels critères je dois me baser ?"
+  },
+  {
+    "id": 23,
+    "category": "comparaison_direct_coworking",
+    "prompt_fr": "Spaces (Regus) ou WeWork, lequel a le meilleur rapport qualité-prix à Paris ?"
+  },
+  {
+    "id": 24,
+    "category": "comparaison_direct_coworking",
+    "prompt_fr": "Quelles sont les différences entre Wojo et Morning Coworking en termes d'ambiance et de services ?"
+  },
+  {
+    "id": 25,
+    "category": "comparaison_direct_coworking",
+    "prompt_fr": "Kwerk vs WeWork, quel espace choisir pour une équipe créative à Paris ?"
+  },
+  {
+    "id": 26,
+    "category": "comparaison_direct_coworking",
+    "prompt_fr": "Quel opérateur de coworking parisien propose le plus de flexibilité sur les engagements ?"
+  },
+  {
+    "id": 27,
+    "category": "comparaison_direct_operateurs",
+    "prompt_fr": "Deskeo ou Come and Work, qu'est-ce qui les différencie pour un bureau privé à Paris ?"
+  },
+  {
+    "id": 28,
+    "category": "comparaison_direct_operateurs",
+    "prompt_fr": "Quel est le meilleur opérateur de bureaux privés flexibles à Paris ?"
+  },
+  {
+    "id": 29,
+    "category": "comparaison_direct_operateurs",
+    "prompt_fr": "Sora propose quoi comme type de bureaux à Paris ?"
+  },
+  {
+    "id": 30,
+    "category": "comparaison_direct_operateurs",
+    "prompt_fr": "LNB (Les Nouveaux Bureaux) c'est fiable comme opérateur à Paris ?"
+  },
+  {
+    "id": 31,
+    "category": "comparaison_direct_operateurs",
+    "prompt_fr": "Je compare Deskeo, Sora et LNB pour un bureau de 15 postes à Paris, qu'est-ce qui les distingue ?"
+  },
+  {
+    "id": 32,
+    "category": "comparaison_direct_operateurs",
+    "prompt_fr": "Quel opérateur de bureaux privés à Paris propose le meilleur accompagnement pour l'aménagement ?"
+  },
+  {
+    "id": 33,
+    "category": "comparaison_direct_operateurs",
+    "prompt_fr": "Come and Work vs les grands opérateurs comme WeWork, quelle différence de positionnement ?"
+  },
+  {
+    "id": 34,
+    "category": "comparaison_direct_operateurs",
+    "prompt_fr": "Quel opérateur de bureaux flexibles à Paris a la meilleure réputation sur la qualité de service ?"
+  },
+  {
+    "id": 35,
+    "category": "comparaison_indirects",
+    "prompt_fr": "Flashoffice ou passer directement par un opérateur de bureaux, quelle différence ?"
+  },
+  {
+    "id": 36,
+    "category": "comparaison_indirects",
+    "prompt_fr": "OfficeRiders, c'est quoi exactement, un courtier ou un opérateur de bureaux ?"
+  },
+  {
+    "id": 37,
+    "category": "comparaison_indirects",
+    "prompt_fr": "Spliit permet de faire quoi pour trouver un bureau à Paris ?"
+  },
+  {
+    "id": 38,
+    "category": "comparaison_indirects",
+    "prompt_fr": "Faut-il passer par une plateforme comme Ubiq ou directement contacter un opérateur de bureaux à Paris ?"
+  },
+  {
+    "id": 39,
+    "category": "comparaison_indirects",
+    "prompt_fr": "JLL peut-il m'aider à trouver un bureau flexible à Paris, ou c'est plutôt pour des bureaux classiques ?"
+  },
+  {
+    "id": 40,
+    "category": "comparaison_indirects",
+    "prompt_fr": "Leaseo, c'est un bon point d'entrée pour comparer les opérateurs de bureaux parisiens ?"
+  },
+  {
+    "id": 41,
+    "category": "comparaison_indirects",
+    "prompt_fr": "Quel est l'intérêt de passer par un courtier comme Flashoffice plutôt que de contacter directement un opérateur ?"
+  },
+  {
+    "id": 42,
+    "category": "comparaison_indirects",
+    "prompt_fr": "Comment fonctionnent des plateformes comme OfficeRiders ou Ubiq pour trouver un bureau à Paris ?"
+  },
+  {
+    "id": 43,
+    "category": "par_quartier",
+    "prompt_fr": "Quels sont les meilleurs espaces de bureaux dans le quartier du Sentier à Paris ?"
+  },
+  {
+    "id": 44,
+    "category": "par_quartier",
+    "prompt_fr": "Je cherche un bureau proche d'Opéra à Paris pour une équipe de 5 personnes"
+  },
+  {
+    "id": 45,
+    "category": "par_quartier",
+    "prompt_fr": "Quels opérateurs de bureaux flexibles sont implantés vers République à Paris ?"
+  },
+  {
+    "id": 46,
+    "category": "par_quartier",
+    "prompt_fr": "Bureaux à louer dans le Marais pour une petite structure"
+  },
+  {
+    "id": 47,
+    "category": "par_quartier",
+    "prompt_fr": "Quel est le quartier le plus intéressant à Paris pour installer les bureaux d'une startup tech ?"
+  },
+  {
+    "id": 48,
+    "category": "par_quartier",
+    "prompt_fr": "Y a-t-il des bureaux flexibles bien desservis en transport proche de Saint-Lazare ?"
+  },
+  {
+    "id": 49,
+    "category": "par_quartier",
+    "prompt_fr": "Je cherche un bureau dans le 2e arrondissement de Paris pour une équipe de 10 personnes"
+  },
+  {
+    "id": 50,
+    "category": "par_quartier",
+    "prompt_fr": "Quels opérateurs de bureaux sont présents dans le 9e arrondissement à Paris ?"
+  },
+  {
+    "id": 51,
+    "category": "par_quartier",
+    "prompt_fr": "Bureau flexible dans le 11e arrondissement, du côté d'Oberkampf ou Bastille"
+  },
+  {
+    "id": 52,
+    "category": "par_quartier",
+    "prompt_fr": "Quelles solutions de bureaux existent dans le quartier des Grands Boulevards à Paris ?"
+  },
+  {
+    "id": 53,
+    "category": "par_quartier",
+    "prompt_fr": "Je cherche un espace de bureau dans le 8e arrondissement, vers Madeleine ou Champs-Élysées"
+  },
+  {
+    "id": 54,
+    "category": "par_quartier",
+    "prompt_fr": "Quels sont les opérateurs de bureaux flexibles présents dans le 3e arrondissement à Paris ?"
+  },
+  {
+    "id": 55,
+    "category": "par_quartier",
+    "prompt_fr": "Bureau à louer près de Châtelet pour une équipe de 6 personnes"
+  },
+  {
+    "id": 56,
+    "category": "par_quartier",
+    "prompt_fr": "Quelles options de bureaux flexibles existent dans le 17e arrondissement, vers Batignolles ?"
+  },
+  {
+    "id": 57,
+    "category": "par_quartier",
+    "prompt_fr": "Je cherche un espace de coworking ou un bureau privé dans le 15e arrondissement à Paris"
+  },
+  {
+    "id": 58,
+    "category": "par_quartier",
+    "prompt_fr": "Quels opérateurs proposent des bureaux dans le 16e arrondissement à Paris ?"
+  },
+  {
+    "id": 59,
+    "category": "par_quartier",
+    "prompt_fr": "Bureau flexible bien situé entre Bastille et République pour une équipe créative"
+  },
+  {
+    "id": 60,
+    "category": "par_quartier",
+    "prompt_fr": "Quels sont les meilleurs bureaux flexibles dans le quartier Montorgueil à Paris ?"
+  },
+  {
+    "id": 61,
+    "category": "par_quartier",
+    "prompt_fr": "Je veux un bureau dans un quartier central et bien connecté en métro à Paris, tu me conseilles quoi ?"
+  },
+  {
+    "id": 62,
+    "category": "par_quartier",
+    "prompt_fr": "Quels opérateurs de bureaux flexibles sont bien implantés rive gauche à Paris, vers Saint-Germain ou le 7e ?"
+  },
+  {
+    "id": 63,
+    "category": "taille_usage",
+    "prompt_fr": "J'ai une équipe de 15 personnes, quelles solutions de bureaux existent à Paris ?"
+  },
+  {
+    "id": 64,
+    "category": "taille_usage",
+    "prompt_fr": "Bureau privé pour 3-4 freelances qui veulent partager un espace à Paris"
+  },
+  {
+    "id": 65,
+    "category": "taille_usage",
+    "prompt_fr": "Solution de bureau pour une entreprise qui grandit vite et ne veut pas s'engager sur trop de m²"
+  },
+  {
+    "id": 66,
+    "category": "taille_usage",
+    "prompt_fr": "Bureau satellite pour une équipe commerciale basée en région mais avec un pied-à-terre à Paris"
+  },
+  {
+    "id": 67,
+    "category": "taille_usage",
+    "prompt_fr": "Quelle solution pour une équipe hybride qui a besoin de bureaux seulement 2-3 jours par semaine ?"
+  },
+  {
+    "id": 68,
+    "category": "taille_usage",
+    "prompt_fr": "J'ouvre une antenne parisienne pour ma boîte, quelles options de bureaux j'ai sans m'engager sur 3 ans ?"
+  },
+  {
+    "id": 69,
+    "category": "taille_usage",
+    "prompt_fr": "Quelle solution de bureau pour une équipe de 40-50 personnes à Paris qui veut rester flexible ?"
+  },
+  {
+    "id": 70,
+    "category": "taille_usage",
+    "prompt_fr": "Bureau individuel fermé pour un dirigeant, disponible au sein d'un espace partagé à Paris"
+  },
+  {
+    "id": 71,
+    "category": "taille_usage",
+    "prompt_fr": "Solution de bureau pour une équipe qui vient de lever des fonds et va doubler d'effectif dans l'année"
+  },
+  {
+    "id": 72,
+    "category": "taille_usage",
+    "prompt_fr": "Quelles options existent pour un siège social parisien flexible pour une PME de 25 personnes ?"
+  },
+  {
+    "id": 73,
+    "category": "budget_prix",
+    "prompt_fr": "Quel est le prix moyen d'un bureau flexible à Paris par poste et par mois ?"
+  },
+  {
+    "id": 74,
+    "category": "budget_prix",
+    "prompt_fr": "Comment sont calculés les tarifs des bureaux flexibles à Paris ?"
+  },
+  {
+    "id": 75,
+    "category": "budget_prix",
+    "prompt_fr": "Solutions de bureaux abordables à Paris pour une petite entreprise en démarrage"
+  },
+  {
+    "id": 76,
+    "category": "budget_prix",
+    "prompt_fr": "Y a-t-il des coûts cachés à prévoir avec les opérateurs de bureaux flexibles ?"
+  },
+  {
+    "id": 77,
+    "category": "budget_prix",
+    "prompt_fr": "Quel budget prévoir pour installer une équipe de 10 personnes dans des bureaux à Paris ?"
+  },
+  {
+    "id": 78,
+    "category": "budget_prix",
+    "prompt_fr": "Quel est le prix au m² d'un bureau opéré à Paris comparé à un bureau classique loué en direct ?"
+  },
+  {
+    "id": 79,
+    "category": "budget_prix",
+    "prompt_fr": "Quels opérateurs de bureaux à Paris ont les tarifs les plus transparents ?"
+  },
+  {
+    "id": 80,
+    "category": "budget_prix",
+    "prompt_fr": "Comment négocier le prix d'un bureau flexible à Paris avec un opérateur ?"
+  },
+  {
+    "id": 81,
+    "category": "services_amenites",
+    "prompt_fr": "Quels services sont généralement inclus dans un bureau flexible à Paris (salles de réunion, internet, etc.) ?"
+  },
+  {
+    "id": 82,
+    "category": "services_amenites",
+    "prompt_fr": "Je cherche un espace de bureau avec des salles de réunion disponibles à la demande à Paris"
+  },
+  {
+    "id": 83,
+    "category": "services_amenites",
+    "prompt_fr": "Solution de domiciliation d'entreprise combinée à des bureaux à Paris"
+  },
+  {
+    "id": 84,
+    "category": "services_amenites",
+    "prompt_fr": "Bureaux équipés clé en main à Paris pour une équipe qui démarre demain"
+  },
+  {
+    "id": 85,
+    "category": "services_amenites",
+    "prompt_fr": "Quels opérateurs proposent des bureaux avec du mobilier déjà installé à Paris ?"
+  },
+  {
+    "id": 86,
+    "category": "services_amenites",
+    "prompt_fr": "Espace de bureau à Paris avec accès à des espaces communs et événements networking"
+  },
+  {
+    "id": 87,
+    "category": "services_amenites",
+    "prompt_fr": "Quel opérateur de bureaux à Paris gère aussi l'entretien et la maintenance des locaux ?"
+  },
+  {
+    "id": 88,
+    "category": "services_amenites",
+    "prompt_fr": "Bureau à Paris avec option de personnalisation de l'agencement pour notre marque"
+  },
+  {
+    "id": 89,
+    "category": "flexibilite_duree",
+    "prompt_fr": "Bureau à louer à Paris pour seulement quelques mois, c'est possible ?"
+  },
+  {
+    "id": 90,
+    "category": "flexibilite_duree",
+    "prompt_fr": "Quelle est la durée d'engagement minimum pour un bureau flexible à Paris ?"
+  },
+  {
+    "id": 91,
+    "category": "flexibilite_duree",
+    "prompt_fr": "Solution de bureau à Paris sans préavis long en cas de changement de besoin"
+  },
+  {
+    "id": 92,
+    "category": "flexibilite_duree",
+    "prompt_fr": "Peut-on agrandir facilement son espace de bureau à Paris si l'équipe grandit ?"
+  },
+  {
+    "id": 93,
+    "category": "flexibilite_duree",
+    "prompt_fr": "Quel opérateur permet de réduire ou augmenter la taille de ses bureaux facilement en cours de contrat ?"
+  },
+  {
+    "id": 94,
+    "category": "flexibilite_duree",
+    "prompt_fr": "Je veux pouvoir résilier rapidement si besoin, quel type d'opérateur de bureaux choisir à Paris ?"
+  },
+  {
+    "id": 95,
+    "category": "avis_reassurance",
+    "prompt_fr": "Quels sont les retours d'expérience sur les opérateurs de bureaux flexibles à Paris ?"
+  },
+  {
+    "id": 96,
+    "category": "avis_reassurance",
+    "prompt_fr": "Snapdesk, c'est fiable comme opérateur de bureaux à Paris ?"
+  },
+  {
+    "id": 97,
+    "category": "avis_reassurance",
+    "prompt_fr": "Quels sont les avis clients sur les principaux opérateurs de coworking parisiens ?"
+  },
+  {
+    "id": 98,
+    "category": "avis_reassurance",
+    "prompt_fr": "Quelles entreprises font confiance à des opérateurs de bureaux flexibles à Paris ?"
+  },
+  {
+    "id": 99,
+    "category": "avis_reassurance",
+    "prompt_fr": "Existe-t-il des études de cas ou témoignages sur des entreprises ayant switché vers un bureau flexible à Paris ?"
+  },
+  {
+    "id": 100,
+    "category": "avis_reassurance",
+    "prompt_fr": "Quel opérateur de bureaux flexibles à Paris a la meilleure note sur Google ou Trustpilot ?"
+  }
+]

@@ -1,0 +1,21 @@
+{
+  "name": "snapdesk-geo-monitor-backend",
+  "version": "1.0.0",
+  "description": "Monitoring GEO (Generative Engine Optimization) pour Snapdesk : suit la présence de Snapdesk dans les réponses de ChatGPT, Claude et Google AI Overviews.",
+  "type": "module",
+  "scripts": {
+    "run-once": "node src/run.js",
+    "schedule": "node src/scheduler.js",
+    "api": "node src/api.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.0",
+    "better-sqlite3": "^11.3.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "node-cron": "^3.0.3",
+    "node-fetch": "^3.3.2",
+    "openai": "^4.67.0"
+  }
+}
