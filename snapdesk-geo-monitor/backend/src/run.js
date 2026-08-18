@@ -22,6 +22,7 @@ import { askClaude } from "./engines/anthropic.js";
 import { getGoogleAIOverview } from "./engines/serpapi.js";
 import { analyzeResponse } from "./analyze.js";
 import { insertResult } from "./db.js";
+import { withRetry } from "./utils/retry.js";
 
 // Pour tester sur un petit lot avant de lancer les 100 : modifie ces deux valeurs.
 const START_INDEX = 0;
@@ -53,7 +54,7 @@ async function runOnce() {
   for (const prompt of prompts) {
     for (const engine of ENGINES) {
       try {
-        const rawResponse = await engine.fn(prompt.prompt_fr);
+        const rawResponse = await withRetry(() => engine.fn(prompt.prompt_fr));
         const analysis = analyzeResponse(rawResponse);
 
         insertResult({

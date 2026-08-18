@@ -2,7 +2,12 @@
   "target": "Snapdesk",
   "categories": {
     "direct_coworking": ["WeWork", "Wojo", "Morning", "Spaces", "Kwerk"],
-    "direct_operators": ["Deskeo", "Come and Work", "Sora", "LNB", "Les Nouveaux Bureaux"],
+    "direct_operators": [
+      "Deskeo",
+      "Come and Work",
+      "Sora",
+      { "name": "Les Nouveaux Bureaux", "aliases": ["LNB"] }
+    ],
     "indirect_brokers": ["Flashoffice", "OfficeRiders", "Spliit", "Ubiq", "JLL", "Leaseo"]
   },
   "notes": "Les indirects (courtiers/agrégateurs) ne proposent pas d'espace en propre mais peuvent capter la demande avant qu'elle n'atteigne un opérateur comme Snapdesk."

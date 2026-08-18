@@ -22,7 +22,9 @@ export async function getGoogleAIOverview(promptText) {
 
   const res = await fetch(url.toString());
   if (!res.ok) {
-    throw new Error(`SerpApi a répondu avec le statut ${res.status}`);
+    const err = new Error(`SerpApi a répondu avec le statut ${res.status}`);
+    err.status = res.status;
+    throw err;
   }
   const data = await res.json();
 
