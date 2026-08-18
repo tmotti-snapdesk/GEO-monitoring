@@ -121,15 +121,29 @@ d'exploitation.
 
 ## Score GEO et sentiment
 
-En plus du simple taux de citation, chaque résultat calcule :
+En plus du simple taux de citation, chaque résultat individuel (un prompt x
+un moteur) calcule :
 
 - **`snapdesk_sentiment`** : quand Snapdesk est cité, Claude évalue le ton du
   passage (`positive` / `neutral` / `negative`) — voir `backend/src/sentiment.js`.
   Pas d'appel supplémentaire quand Snapdesk n'est pas cité, pour limiter les coûts.
 - **`geo_score`** (0 à 100) : combine présence + rang d'apparition + sentiment
-  en un seul chiffre par résultat (voir `backend/src/score.js` pour le détail
-  du calcul). Affiché par moteur dans le dashboard et exposé par
-  `/api/timeseries` et `/api/latest-summary`.
+  pour ce résultat précis (voir `backend/src/score.js` pour le détail du calcul).
+
+Ces deux métriques par résultat ne sont que la brique de base : **le chiffre à
+suivre est la synthèse globale du run**, calculée par `/api/latest-summary`
+dans son champ `overall` (tous moteurs et 100 prompts confondus, pas un score
+par moteur) :
+
+- `overall.geo_score` : moyenne du `geo_score` sur l'ensemble du run.
+- `overall.sentiment_score` : moyenne pondérée du sentiment sur toutes les
+  mentions du run (positif = 100, neutre = 50, négatif = 0), `null` si Snapdesk
+  n'a été cité nulle part.
+- `overall.citation_rate` : taux de citation global.
+
+C'est cette synthèse qui s'affiche en gros en haut du dashboard ; le détail
+par moteur (`byEngine`) reste disponible juste en dessous, à titre de
+complément.
 
 Le dashboard affiche aussi la répartition du sentiment des mentions du
 dernier run, et un bouton **Exporter en CSV** (endpoint `GET /api/export.csv`,

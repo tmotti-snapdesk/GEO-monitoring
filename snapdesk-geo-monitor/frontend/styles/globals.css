@@ -82,6 +82,33 @@ h1 {
   margin-right: 6px;
 }
 
+.hero-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.hero-card {
+  background: linear-gradient(160deg, #1c2029, #171a21);
+  border: 1px solid #d97757;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.hero-card .value,
+.hero-card .hero-value {
+  font-size: 44px;
+  font-weight: 700;
+  margin: 8px 0;
+  color: #d97757;
+}
+
+.hero-card .label {
+  font-size: 13px;
+  color: #9a9ea6;
+}
+
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

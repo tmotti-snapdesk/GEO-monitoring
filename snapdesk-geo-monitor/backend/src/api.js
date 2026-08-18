@@ -48,8 +48,9 @@ app.get("/api/timeseries", (req, res) => {
 });
 
 // GET /api/latest-summary
-// Pour le run le plus récent : taux de citation par moteur + classement des
-// concurrents les plus souvent cités à la place de (ou à côté de) Snapdesk.
+// Pour le run le plus récent : une synthèse globale (tous moteurs confondus,
+// sur l'ensemble des 100 prompts) — c'est LE chiffre à suivre — puis le détail
+// par moteur, le classement des concurrents et la répartition du sentiment.
 app.get("/api/latest-summary", (req, res) => {
   const latestRun = db
     .prepare(`SELECT MAX(run_at) AS run_at FROM results`)
@@ -58,11 +59,27 @@ app.get("/api/latest-summary", (req, res) => {
   if (!latestRun) {
     return res.json({
       run_at: null,
+      overall: null,
       byEngine: [],
       topCompetitors: [],
       sentimentBreakdown: [],
     });
   }
+
+  // Synthèse globale : un seul score de citation et un seul score GEO pour
+  // l'ensemble du run (les 100 prompts x les 3 moteurs), pas un par moteur.
+  const overallRow = db
+    .prepare(
+      `
+      SELECT
+        COUNT(*) AS total_results,
+        SUM(snapdesk_mentioned) AS total_mentions,
+        AVG(geo_score) AS avg_geo_score
+      FROM results
+      WHERE run_at = ?
+    `
+    )
+    .get(latestRun);
 
   const byEngine = db
     .prepare(
@@ -115,7 +132,34 @@ app.get("/api/latest-summary", (req, res) => {
     )
     .all(latestRun);
 
-  res.json({ run_at: latestRun, byEngine, topCompetitors, sentimentBreakdown });
+  // Score de sentiment global (0-100), synthèse de TOUTES les mentions du run
+  // (tous moteurs confondus) : positif = 100, neutre = 50, négatif = 0, moyenné.
+  // null si Snapdesk n'a été cité nulle part sur ce run (rien à évaluer).
+  const SENTIMENT_POINTS = { positive: 100, neutral: 50, negative: 0 };
+  let sentimentPointsSum = 0;
+  let sentimentTotal = 0;
+  for (const s of sentimentBreakdown) {
+    if (s.sentiment in SENTIMENT_POINTS) {
+      sentimentPointsSum += SENTIMENT_POINTS[s.sentiment] * s.count;
+      sentimentTotal += s.count;
+    }
+  }
+
+  const overall = {
+    total_results: overallRow.total_results,
+    total_mentions: overallRow.total_mentions || 0,
+    citation_rate: overallRow.total_results
+      ? Math.round((overallRow.total_mentions / overallRow.total_results) * 1000) / 10
+      : 0,
+    geo_score: overallRow.avg_geo_score
+      ? Math.round(overallRow.avg_geo_score * 10) / 10
+      : 0,
+    sentiment_score: sentimentTotal
+      ? Math.round((sentimentPointsSum / sentimentTotal) * 10) / 10
+      : null,
+  };
+
+  res.json({ run_at: latestRun, overall, byEngine, topCompetitors, sentimentBreakdown });
 });
 
 // GET /api/results?run_at=...&engine=...

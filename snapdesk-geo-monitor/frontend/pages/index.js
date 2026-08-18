@@ -105,17 +105,50 @@ export default function Dashboard() {
 
       {summary && summary.run_at && (
         <>
-          <div className="cards">
-            {summary.byEngine.map((e) => (
-              <div className="card" key={e.engine}>
-                <div className="label">{ENGINE_LABELS[e.engine] || e.engine}</div>
-                <div className="value">{e.citation_rate}%</div>
-                <div className="label">
-                  {e.snapdesk_mentions} / {e.total_prompts} prompts
-                </div>
-                <div className="score-badge">Score GEO : {e.avg_geo_score} / 100</div>
+          <div className="hero-cards">
+            <div className="hero-card">
+              <div className="label">Score GEO global</div>
+              <div className="hero-value">{summary.overall.geo_score}</div>
+              <div className="label">
+                sur 100 — synthèse des {summary.overall.total_results} résultats
+                (100 prompts x {summary.byEngine.length} moteurs)
               </div>
-            ))}
+            </div>
+            <div className="hero-card">
+              <div className="label">Taux de citation global</div>
+              <div className="hero-value">{summary.overall.citation_rate}%</div>
+              <div className="label">
+                {summary.overall.total_mentions} / {summary.overall.total_results}{" "}
+                résultats mentionnent Snapdesk
+              </div>
+            </div>
+            <div className="hero-card">
+              <div className="label">Score de sentiment global</div>
+              <div className="hero-value">
+                {summary.overall.sentiment_score ?? "—"}
+              </div>
+              <div className="label">
+                {summary.overall.sentiment_score === null
+                  ? "aucune mention à évaluer sur ce run"
+                  : "sur 100 — moyenne des mentions (positif=100, neutre=50, négatif=0)"}
+              </div>
+            </div>
+          </div>
+
+          <div className="section">
+            <h2>Détail par moteur</h2>
+            <div className="cards">
+              {summary.byEngine.map((e) => (
+                <div className="card" key={e.engine}>
+                  <div className="label">{ENGINE_LABELS[e.engine] || e.engine}</div>
+                  <div className="value">{e.citation_rate}%</div>
+                  <div className="label">
+                    {e.snapdesk_mentions} / {e.total_prompts} prompts
+                  </div>
+                  <div className="score-badge">Score GEO : {e.avg_geo_score} / 100</div>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="section">
