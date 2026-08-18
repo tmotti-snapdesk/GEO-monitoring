@@ -10,8 +10,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-
 const ENGINE_LABELS = {
   chatgpt: "ChatGPT",
   claude: "Claude",
@@ -64,8 +62,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     Promise.all([
-      fetch(`${API_URL}/api/latest-summary`).then((r) => r.json()),
-      fetch(`${API_URL}/api/timeseries`).then((r) => r.json()),
+      fetch(`/api/latest-summary`).then((r) => r.json()),
+      fetch(`/api/timeseries`).then((r) => r.json()),
     ])
       .then(([summaryData, timeseriesData]) => {
         setSummary(summaryData);
@@ -86,7 +84,7 @@ export default function Dashboard() {
             flexibles à Paris.
           </p>
         </div>
-        <a className="button" href={`${API_URL}/api/export.csv`}>
+        <a className="button" href="/api/export.csv">
           Exporter en CSV
         </a>
       </div>
@@ -94,8 +92,7 @@ export default function Dashboard() {
       {loading && <p className="empty">Chargement des résultats...</p>}
       {error && (
         <p className="empty">
-          Impossible de contacter l'API ({API_URL}). Vérifie que le backend
-          tourne bien (`npm run api` dans le dossier backend). Détail : {error}
+          Erreur lors du chargement des résultats : {error}
         </p>
       )}
 

@@ -57,7 +57,7 @@ for (const [runIndex, runAt] of runDates.entries()) {
         () => Math.random() < 0.15
       ).slice(0, 3);
 
-      insertResult({
+      await insertResult({
         run_at: runAt,
         engine,
         prompt_id: prompt.id,
@@ -79,5 +79,5 @@ for (const [runIndex, runAt] of runDates.entries()) {
 }
 
 console.log(
-  `\n${NUM_RUNS} runs de démo générés (${promptsData.length} prompts x ${ENGINES.length} moteurs chacun). Lance "npm run api" puis le frontend pour les voir.`
+  `\n${NUM_RUNS} runs de démo générés (${promptsData.length} prompts x ${ENGINES.length} moteurs chacun). Lance "npm run dev" dans frontend/ pour les voir.`
 );

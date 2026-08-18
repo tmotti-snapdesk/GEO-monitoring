@@ -12,9 +12,15 @@ Un script Node.js pose les 100 questions aux moteurs activés (ChatGPT, Claude,
 Google AI Overview via SerpApi, et/ou Gemini — voir `ENGINES_ENABLED` plus bas)
 — tous avec un accès web en direct, pour coller à ce qu'un vrai utilisateur
 voit aujourd'hui — regarde si "Snapdesk" apparaît dans chaque réponse et à
-quelle position, stocke tout dans un fichier de base de données local
-(`backend/data.sqlite`), et un site Next.js affiche l'évolution de ces
-chiffres dans un dashboard.
+quelle position, et stocke tout dans une base de données (un fichier SQLite en
+local, ou [Turso](https://turso.tech) en production — même code des deux
+côtés, voir "Déploiement" plus bas). Un site Next.js affiche l'évolution de
+ces chiffres dans un dashboard, et sert aussi l'API qui lit ces résultats.
+
+En prod, le run hebdomadaire tourne sur **GitHub Actions** (gratuit, pas de
+serveur à gérer) plutôt qu'en continu quelque part : Vercel n'est pas adapté à
+un job de plusieurs minutes ni à un fichier qui doit persister, voir
+"Déploiement".
 
 ### Google AI Overview vs Gemini : deux surfaces différentes
 
@@ -81,21 +87,31 @@ Deux nuances à garder en tête, différentes d'un "biais d'historique" :
 
 ```
 snapdesk-geo-monitor/
-├── backend/              → Node.js : interroge les IA, stocke, expose une API
+├── backend/              → Node.js : interroge les IA, écrit les résultats
 │   ├── config/
 │   │   ├── prompts.json      → les 100 questions testées
 │   │   └── competitors.json  → la liste des concurrents à détecter
 │   ├── src/
 │   │   ├── engines/          → un fichier par moteur IA interrogé
 │   │   ├── analyze.js        → détecte les mentions de Snapdesk/concurrents
-│   │   ├── db.js             → base de données locale (SQLite)
+│   │   ├── sentiment.js      → juge le ton des mentions de Snapdesk
+│   │   ├── score.js          → calcule le score GEO combiné
+│   │   ├── db.js             → connexion à la base (fichier local ou Turso)
 │   │   ├── run.js            → lance UN cycle de monitoring complet
-│   │   ├── scheduler.js      → lance run.js automatiquement chaque semaine
-│   │   └── api.js            → petit serveur qui sert les résultats au dashboard
+│   │   └── seed-demo-data.js → génère des données fictives pour prévisualiser le dashboard
 │   └── .env.example          → à copier en .env avec tes vraies clés
-└── frontend/             → Next.js : le dashboard visuel
-    └── pages/index.js        → la page unique du dashboard
+└── frontend/             → Next.js : le dashboard + l'API qui lit les résultats
+    ├── lib/db.js              → connexion en lecture à la même base
+    └── pages/
+        ├── index.js               → la page unique du dashboard
+        └── api/                   → routes API (timeseries, latest-summary, results, export.csv)
+
+.github/workflows/geo-monitor.yml  → déclenche `run.js` chaque lundi (voir "Déploiement")
 ```
+
+Il n'y a plus de serveur Express séparé : le dashboard Next.js sert aussi
+l'API (routes dans `frontend/pages/api/`), ce qui simplifie le dev local (un
+seul `npm run dev`) et correspond à ce que Vercel héberge nativement.
 
 ## Installation (à faire une seule fois)
 
@@ -103,21 +119,35 @@ Tu as besoin de [Node.js](https://nodejs.org/) installé sur ta machine
 (version 18 ou plus récente). Une fois que c'est fait :
 
 ```bash
-# 1. Installer les dépendances du backend
+# 1. Installer les dépendances du backend (le script qui interroge les IA)
 cd backend
 npm install
 cp .env.example .env
 # → ouvre .env et colle tes vraies clés API (OpenAI, Anthropic, SerpApi, Gemini)
 # → si tu n'as pas encore toutes les clés, limite les moteurs testés avec
 #   ENGINES_ENABLED (ex: ENGINES_ENABLED=claude,gemini)
+# → TURSO_DATABASE_URL / TURSO_AUTH_TOKEN restent vides pour l'instant : en
+#   local, sans ces 2 variables, tout est stocké dans backend/data.sqlite
 
-# 2. Installer les dépendances du frontend
+# 2. Installer les dépendances du frontend (dashboard + API)
 cd ../frontend
 npm install
-cp .env.local.example .env.local
 ```
 
-## Lancer un premier test (recommandé avant de tout lancer sur 100 prompts)
+## Voir le dashboard sans dépenser un centime (données de démo)
+
+```bash
+cd backend
+npm run seed-demo   # génère 4 runs fictifs dans backend/data.sqlite
+cd ../frontend
+npm run dev
+```
+
+Ouvre [http://localhost:3000](http://localhost:3000). Utile pour prévisualiser
+l'UI ou vérifier que tout tourne après un changement, sans appeler les
+vraies API.
+
+## Lancer un premier vrai test (recommandé avant de tout lancer sur 100 prompts)
 
 Ouvre `backend/src/run.js` et change temporairement :
 
@@ -133,48 +163,52 @@ cd backend
 npm run run-once
 ```
 
-Ça va poser les 5 premières questions aux 3 moteurs (15 appels API) et
-enregistrer les résultats. Regarde dans le terminal qu'il n'y a pas d'erreur
-(clé API invalide, quota dépassé, etc.), puis remets `END_INDEX =
-promptsData.length` pour repasser sur les 100 prompts complets.
+Regarde dans le terminal qu'il n'y a pas d'erreur (clé API invalide, quota
+dépassé, etc.), puis remets `END_INDEX = promptsData.length` pour repasser sur
+les 100 prompts complets. Une fois lancé, `cd frontend && npm run dev` pour
+voir les vrais résultats (il lit le même `backend/data.sqlite`).
 
-## Voir le dashboard
+## Déploiement (Vercel + GitHub Actions + Turso)
 
-Il faut deux terminaux ouverts en même temps :
+Le dashboard va sur Vercel, mais le run hebdomadaire (plusieurs minutes,
+beaucoup d'appels API) ne rentre pas dans une fonction serverless Vercel — il
+tourne donc sur GitHub Actions à la place, et écrit dans une base Turso que
+Vercel lit ensuite en lecture seule.
 
-```bash
-# Terminal 1 : l'API qui sert les résultats
-cd backend
-npm run api
-
-# Terminal 2 : le dashboard
-cd frontend
-npm run dev
-```
-
-Puis ouvre [http://localhost:3000](http://localhost:3000) dans ton
-navigateur.
-
-## Lancer le monitoring complet (100 prompts x 3 moteurs)
+**1. Créer la base Turso**
 
 ```bash
-cd backend
-npm run run-once
+# Installe le CLI Turso (voir docs.turso.tech si la commande diffère) :
+curl -sSfL https://get.tur.so/install.sh | bash
+turso auth login
+turso db create snapdesk-geo-monitor
+turso db show snapdesk-geo-monitor --url        # → TURSO_DATABASE_URL
+turso db tokens create snapdesk-geo-monitor      # → TURSO_AUTH_TOKEN
 ```
 
-Ça prend quelques minutes (300 appels API avec une petite pause entre chaque
-pour rester tranquille avec les limites de débit). Une fois terminé, recharge
-le dashboard : les nouveaux chiffres apparaissent.
+**2. Configurer GitHub Actions** (le run hebdomadaire)
 
-## Automatiser (optionnel)
+Dans les Settings du repo GitHub > *Secrets and variables* > *Actions* :
+- **Secrets** (sensibles) : `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`,
+  `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `SERPAPI_API_KEY`, `GEMINI_API_KEY`.
+- **Variables** (optionnel, non sensibles) : `ENGINES_ENABLED`,
+  `OPENAI_MODEL`, `ANTHROPIC_MODEL`, `ANTHROPIC_SENTIMENT_MODEL`, `GEMINI_MODEL`
+  si tu veux surcharger les valeurs par défaut du code.
 
-`npm run schedule` (dans `backend/`) lance un process qui reste actif et
-déclenche automatiquement `run.js` tous les lundis à 6h. Ce process doit
-tourner en continu quelque part — soit ta machine reste allumée, soit tu le
-déploies sur un petit serveur (Railway, Render, un VPS...). Si tu préfères
-rester simple, tu peux aussi juste lancer `npm run run-once` manuellement
-chaque semaine, ou passer par une tâche planifiée de ton système
-d'exploitation.
+Le workflow (`.github/workflows/geo-monitor.yml`) tourne automatiquement tous
+les lundis à 6h UTC. Pour tester sans attendre : onglet **Actions** du repo >
+"GEO Monitor - run hebdomadaire" > **Run workflow**.
+
+**3. Déployer le dashboard sur Vercel**
+
+- Importe le repo dans Vercel, avec **Root Directory = `snapdesk-geo-monitor/frontend`**
+  (c'est un monorepo, Vercel doit savoir où est l'app Next.js).
+- Ajoute les variables d'environnement `TURSO_DATABASE_URL` et
+  `TURSO_AUTH_TOKEN` (mêmes valeurs que les secrets GitHub) dans les
+  paramètres du projet Vercel.
+- Déploie. Le dashboard lit directement la base Turso — pas besoin de
+  redéployer après chaque run GitHub Actions, les nouvelles données
+  apparaissent au prochain chargement de page.
 
 ## Coûts à prévoir
 
@@ -188,6 +222,9 @@ d'exploitation.
 - **SerpApi** : le plan gratuit inclut 100 requêtes/mois — donc tout juste 1
   run complet par mois. Pour un run hebdomadaire sur les 100 prompts, il
   faudra passer sur un plan payant.
+- **Turso / GitHub Actions / Vercel** : gratuits à ce volume (un run hebdo de
+  quelques centaines de lignes en base, un job de quelques minutes par
+  semaine, un dashboard à faible trafic).
 
 ## Score GEO et sentiment
 
@@ -227,8 +264,12 @@ les résultats bruts.
 - **Variantes de prompts** : reformuler automatiquement chaque prompt (via un
   LLM) pour tester plusieurs façons de poser la même question, plus robuste
   qu'une liste figée de 100 prompts.
-- **Protection de l'API** : `backend/src/api.js` n'a pas d'authentification
-  ni de restriction CORS — à ajouter avant tout déploiement public.
+- **Protection de l'API** : les routes `frontend/pages/api/*` n'ont pas
+  d'authentification — une fois sur Vercel, `/api/export.csv` (qui contient
+  les réponses brutes des IA, donc de l'intelligence concurrentielle) est
+  accessible à qui a l'URL. À ajouter avant un usage sensible : protection
+  Vercel (mot de passe au niveau du projet) ou vérification d'un header/token
+  secret dans les routes API elles-mêmes.
 
 ## Où sont mes 100 prompts et ma liste de concurrents ?
 

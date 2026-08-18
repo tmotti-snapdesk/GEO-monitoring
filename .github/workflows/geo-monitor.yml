@@ -1,0 +1,54 @@
+name: GEO Monitor - run hebdomadaire
+
+# Remplace l'ancien scheduler.js (node-cron) : interroge les moteurs IA sur
+# les 100 prompts et écrit les résultats dans la base Turso, que le dashboard
+# déployé sur Vercel lit ensuite en lecture seule.
+#
+# Mise en place (une seule fois) :
+#  1. Crée une base Turso (voir README, section "Déploiement").
+#  2. Ajoute les secrets ci-dessous dans Settings > Secrets and variables >
+#     Actions du repo GitHub : TURSO_DATABASE_URL, TURSO_AUTH_TOKEN,
+#     OPENAI_API_KEY, ANTHROPIC_API_KEY, SERPAPI_API_KEY, GEMINI_API_KEY.
+#  3. (Optionnel) ajoute des "variables" (pas des secrets, non sensibles) pour
+#     ENGINES_ENABLED, OPENAI_MODEL, ANTHROPIC_MODEL, etc. si tu veux
+#     surcharger les valeurs par défaut du code.
+#  4. Le workflow tourne automatiquement chaque lundi. Pour tester avant
+#     d'attendre le prochain lundi : onglet "Actions" du repo > ce workflow >
+#     "Run workflow" (déclenchement manuel via workflow_dispatch ci-dessous).
+
+on:
+  schedule:
+    # Tous les lundis à 6h UTC. Les crons GitHub Actions sont toujours en UTC
+    # (contrairement à l'ancien node-cron qui utilisait l'heure du serveur) —
+    # ajuste l'heure ci-dessous si tu veux viser une heure locale précise.
+    - cron: "0 6 * * 1"
+  workflow_dispatch: {}
+
+jobs:
+  run-monitoring:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: snapdesk-geo-monitor/backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci
+
+      - run: npm run run-once
+        env:
+          TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}
+          ANTHROPIC_SENTIMENT_MODEL: ${{ vars.ANTHROPIC_SENTIMENT_MODEL }}
+          SERPAPI_API_KEY: ${{ secrets.SERPAPI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+          ENGINES_ENABLED: ${{ vars.ENGINES_ENABLED }}

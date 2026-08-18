@@ -9,7 +9,8 @@
 //     base de données locale (data.sqlite)
 //
 // Lancement manuel :   npm run run-once
-// Lancement planifié :  npm run schedule   (voir scheduler.js)
+// Lancement planifié :  automatiquement chaque semaine via GitHub Actions
+//                        (voir .github/workflows/geo-monitor.yml)
 //
 // ATTENTION AUX COÛTS : 100 prompts x N moteurs activés = autant d'appels API
 // par exécution, plus un appel Claude supplémentaire (léger) pour chaque
@@ -106,7 +107,7 @@ async function runOnce() {
           sentiment,
         });
 
-        insertResult({
+        await insertResult({
           run_at: runAt,
           engine: engine.key,
           prompt_id: prompt.id,
@@ -125,7 +126,7 @@ async function runOnce() {
           `Erreur sur prompt #${prompt.id} / ${engine.key}:`,
           err.message
         );
-        insertResult({
+        await insertResult({
           run_at: runAt,
           engine: engine.key,
           prompt_id: prompt.id,
@@ -149,7 +150,11 @@ async function runOnce() {
     }
   }
 
-  console.log(`Run terminé (${runAt}). Résultats stockés dans backend/data.sqlite.`);
+  console.log(
+    `Run terminé (${runAt}). Résultats stockés dans ${
+      process.env.TURSO_DATABASE_URL ? "la base Turso" : "backend/data.sqlite"
+    }.`
+  );
 }
 
 runOnce();
