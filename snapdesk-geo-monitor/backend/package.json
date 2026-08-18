@@ -6,7 +6,8 @@
   "scripts": {
     "run-once": "node src/run.js",
     "schedule": "node src/scheduler.js",
-    "api": "node src/api.js"
+    "api": "node src/api.js",
+    "seed-demo": "node src/seed-demo-data.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.0",

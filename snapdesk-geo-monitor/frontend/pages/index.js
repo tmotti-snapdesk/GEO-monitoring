@@ -81,8 +81,9 @@ export default function Dashboard() {
         <div>
           <h1>Snapdesk — Suivi GEO</h1>
           <p className="subtitle">
-            Visibilité de Snapdesk dans ChatGPT, Claude et Google AI Overview, sur
-            100 requêtes représentatives du marché des bureaux flexibles à Paris.
+            Visibilité de Snapdesk dans ChatGPT, Claude, Google AI Overview et
+            Gemini, sur 100 requêtes représentatives du marché des bureaux
+            flexibles à Paris.
           </p>
         </div>
         <a className="button" href={`${API_URL}/api/export.csv`}>
