@@ -60,6 +60,18 @@ function findAllMentions(text, entries) {
   return found.sort((a, b) => a.index - b.index);
 }
 
+// Extrait le passage de `text` autour de la mention de Snapdesk (± `radius`
+// caractères), pour donner du contexte à l'analyse de sentiment sans envoyer
+// toute la réponse brute au LLM. Si "Snapdesk" n'est pas trouvé, renvoie le
+// début du texte.
+export function getSnapdeskContext(text, radius = 400) {
+  const idx = findFirstIndex(text, "Snapdesk");
+  if (idx === -1) return text.slice(0, radius * 2);
+  const start = Math.max(0, idx - radius);
+  const end = Math.min(text.length, idx + "Snapdesk".length + radius);
+  return text.slice(start, end);
+}
+
 export function analyzeResponse(text) {
   if (!text || text.trim() === "") {
     return {

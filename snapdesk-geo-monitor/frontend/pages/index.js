@@ -24,6 +24,18 @@ const ENGINE_COLORS = {
   google_ai_overview: "#4285f4",
 };
 
+const SENTIMENT_LABELS = {
+  positive: "Positif",
+  neutral: "Neutre",
+  negative: "Négatif",
+};
+
+const SENTIMENT_COLORS = {
+  positive: "#4caf7d",
+  neutral: "#9a9ea6",
+  negative: "#e25c5c",
+};
+
 function formatDate(iso) {
   if (!iso) return "";
   const d = new Date(iso);
@@ -63,11 +75,18 @@ export default function Dashboard() {
 
   return (
     <div className="container">
-      <h1>Snapdesk — Suivi GEO</h1>
-      <p className="subtitle">
-        Visibilité de Snapdesk dans ChatGPT, Claude et Google AI Overview, sur 100
-        requêtes représentatives du marché des bureaux flexibles à Paris.
-      </p>
+      <div className="header-row">
+        <div>
+          <h1>Snapdesk — Suivi GEO</h1>
+          <p className="subtitle">
+            Visibilité de Snapdesk dans ChatGPT, Claude et Google AI Overview, sur
+            100 requêtes représentatives du marché des bureaux flexibles à Paris.
+          </p>
+        </div>
+        <a className="button" href={`${API_URL}/api/export.csv`}>
+          Exporter en CSV
+        </a>
+      </div>
 
       {loading && <p className="empty">Chargement des résultats...</p>}
       {error && (
@@ -94,6 +113,7 @@ export default function Dashboard() {
                 <div className="label">
                   {e.snapdesk_mentions} / {e.total_prompts} prompts
                 </div>
+                <div className="score-badge">Score GEO : {e.avg_geo_score} / 100</div>
               </div>
             ))}
           </div>
@@ -128,6 +148,48 @@ export default function Dashboard() {
                   ))}
                 </LineChart>
               </ResponsiveContainer>
+            )}
+          </div>
+
+          <div className="section">
+            <h2>Sentiment des mentions de Snapdesk (dernier run)</h2>
+            {summary.sentimentBreakdown.length === 0 ? (
+              <p className="empty">
+                Aucune mention de Snapdesk à analyser sur ce run.
+              </p>
+            ) : (
+              <>
+                <div className="sentiment-bar">
+                  {summary.sentimentBreakdown.map((s) => {
+                    const total = summary.sentimentBreakdown.reduce(
+                      (sum, x) => sum + x.count,
+                      0
+                    );
+                    const pct = total ? (s.count / total) * 100 : 0;
+                    return (
+                      <div
+                        key={s.sentiment || "unknown"}
+                        style={{
+                          width: `${pct}%`,
+                          background: SENTIMENT_COLORS[s.sentiment] || "#555",
+                        }}
+                        title={`${SENTIMENT_LABELS[s.sentiment] || s.sentiment}: ${s.count}`}
+                      />
+                    );
+                  })}
+                </div>
+                <div className="sentiment-legend">
+                  {summary.sentimentBreakdown.map((s) => (
+                    <span key={s.sentiment || "unknown"}>
+                      <span
+                        className="dot"
+                        style={{ background: SENTIMENT_COLORS[s.sentiment] || "#555" }}
+                      />
+                      {SENTIMENT_LABELS[s.sentiment] || s.sentiment} ({s.count})
+                    </span>
+                  ))}
+                </div>
+              </>
             )}
           </div>
 

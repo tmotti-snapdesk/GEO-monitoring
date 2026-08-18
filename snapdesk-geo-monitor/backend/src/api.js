@@ -27,7 +27,8 @@ app.get("/api/timeseries", (req, res) => {
         run_at,
         engine,
         COUNT(*) AS total_prompts,
-        SUM(snapdesk_mentioned) AS snapdesk_mentions
+        SUM(snapdesk_mentioned) AS snapdesk_mentions,
+        AVG(geo_score) AS avg_geo_score
       FROM results
       GROUP BY run_at, engine
       ORDER BY run_at ASC
@@ -40,6 +41,7 @@ app.get("/api/timeseries", (req, res) => {
     citation_rate: r.total_prompts
       ? Math.round((r.snapdesk_mentions / r.total_prompts) * 1000) / 10
       : 0,
+    avg_geo_score: r.avg_geo_score ? Math.round(r.avg_geo_score * 10) / 10 : 0,
   }));
 
   res.json(withRate);
@@ -54,7 +56,12 @@ app.get("/api/latest-summary", (req, res) => {
     .get()?.run_at;
 
   if (!latestRun) {
-    return res.json({ run_at: null, byEngine: [], topCompetitors: [] });
+    return res.json({
+      run_at: null,
+      byEngine: [],
+      topCompetitors: [],
+      sentimentBreakdown: [],
+    });
   }
 
   const byEngine = db
@@ -63,7 +70,8 @@ app.get("/api/latest-summary", (req, res) => {
       SELECT
         engine,
         COUNT(*) AS total_prompts,
-        SUM(snapdesk_mentioned) AS snapdesk_mentions
+        SUM(snapdesk_mentioned) AS snapdesk_mentions,
+        AVG(geo_score) AS avg_geo_score
       FROM results
       WHERE run_at = ?
       GROUP BY engine
@@ -75,6 +83,7 @@ app.get("/api/latest-summary", (req, res) => {
       citation_rate: r.total_prompts
         ? Math.round((r.snapdesk_mentions / r.total_prompts) * 1000) / 10
         : 0,
+      avg_geo_score: r.avg_geo_score ? Math.round(r.avg_geo_score * 10) / 10 : 0,
     }));
 
   const allRows = db
@@ -93,7 +102,20 @@ app.get("/api/latest-summary", (req, res) => {
     .sort((a, b) => b.count - a.count)
     .slice(0, 10);
 
-  res.json({ run_at: latestRun, byEngine, topCompetitors });
+  // Répartition du sentiment des mentions de Snapdesk sur le dernier run
+  // (uniquement parmi les prompts où Snapdesk est effectivement cité).
+  const sentimentBreakdown = db
+    .prepare(
+      `
+      SELECT snapdesk_sentiment AS sentiment, COUNT(*) AS count
+      FROM results
+      WHERE run_at = ? AND snapdesk_mentioned = 1
+      GROUP BY snapdesk_sentiment
+    `
+    )
+    .all(latestRun);
+
+  res.json({ run_at: latestRun, byEngine, topCompetitors, sentimentBreakdown });
 });
 
 // GET /api/results?run_at=...&engine=...
@@ -112,6 +134,53 @@ app.get("/api/results", (req, res) => {
   }
   query += " ORDER BY prompt_id ASC";
   res.json(db.prepare(query).all(...params));
+});
+
+// GET /api/export.csv?run_at=...
+// Export brut de la table results en CSV, pour partager/analyser en dehors du
+// dashboard. Sans run_at : exporte tout l'historique.
+const CSV_COLUMNS = [
+  "id",
+  "run_at",
+  "engine",
+  "prompt_id",
+  "prompt_category",
+  "prompt_text",
+  "snapdesk_mentioned",
+  "snapdesk_position",
+  "snapdesk_sentiment",
+  "geo_score",
+  "competitors_mentioned",
+  "raw_response",
+  "error",
+];
+
+function csvEscape(value) {
+  if (value === null || value === undefined) return "";
+  const str = String(value);
+  return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+}
+
+app.get("/api/export.csv", (req, res) => {
+  const { run_at } = req.query;
+  let query = "SELECT * FROM results WHERE 1=1";
+  const params = [];
+  if (run_at) {
+    query += " AND run_at = ?";
+    params.push(run_at);
+  }
+  query += " ORDER BY run_at ASC, prompt_id ASC, engine ASC";
+  const rows = db.prepare(query).all(...params);
+
+  const lines = [CSV_COLUMNS.join(",")];
+  for (const row of rows) {
+    lines.push(CSV_COLUMNS.map((col) => csvEscape(row[col])).join(","));
+  }
+
+  const filename = `geo-monitor-export${run_at ? "-" + run_at.slice(0, 10) : ""}.csv`;
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  res.send(lines.join("\n"));
 });
 
 app.listen(PORT, () => {

@@ -3,15 +3,18 @@
 //  1. charge la liste des 100 prompts
 //  2. pour chaque prompt, interroge ChatGPT, Claude et Google AI Overview
 //  3. analyse chaque réponse (mention de Snapdesk ? position ? concurrents cités ?)
-//  4. enregistre tout dans la base de données locale (data.sqlite)
+//  4. si Snapdesk est cité, demande à Claude d'évaluer le sentiment de la mention
+//  5. calcule un score GEO combiné (voir score.js) et enregistre tout dans la
+//     base de données locale (data.sqlite)
 //
 // Lancement manuel :   npm run run-once
 // Lancement planifié :  npm run schedule   (voir scheduler.js)
 //
-// ATTENTION AUX COÛTS : 100 prompts x 3 moteurs = 300 appels API par exécution.
-// Sur OpenAI/Anthropic ça reste de l'ordre de quelques euros ; sur SerpApi (plan
-// gratuit à 100 requêtes/mois) tu dépasseras vite le quota gratuit si tu lances ça
-// chaque semaine sur les 100 prompts. Deux options :
+// ATTENTION AUX COÛTS : 100 prompts x 3 moteurs = 300 appels API par exécution,
+// plus un appel Claude supplémentaire (léger) pour chaque résultat où Snapdesk
+// est cité. Sur OpenAI/Anthropic ça reste de l'ordre de quelques euros ; sur
+// SerpApi (plan gratuit à 100 requêtes/mois) tu dépasseras vite le quota
+// gratuit si tu lances ça chaque semaine sur les 100 prompts. Deux options :
 //   - ajuster START_INDEX / END_INDEX ci-dessous pour tourner sur un sous-ensemble
 //   - passer sur un plan SerpApi payant une fois que le POC te convainc
 
@@ -20,7 +23,9 @@ import promptsData from "../config/prompts.json" with { type: "json" };
 import { askChatGPT } from "./engines/openai.js";
 import { askClaude } from "./engines/anthropic.js";
 import { getGoogleAIOverview } from "./engines/serpapi.js";
-import { analyzeResponse } from "./analyze.js";
+import { analyzeResponse, getSnapdeskContext } from "./analyze.js";
+import { analyzeSentiment } from "./sentiment.js";
+import { computeGeoScore } from "./score.js";
 import { insertResult } from "./db.js";
 import { withRetry } from "./utils/retry.js";
 
@@ -57,6 +62,20 @@ async function runOnce() {
         const rawResponse = await withRetry(() => engine.fn(prompt.prompt_fr));
         const analysis = analyzeResponse(rawResponse);
 
+        // On ne juge le sentiment que si Snapdesk est cité : ça évite un 4e
+        // appel API (donc un coût) sur les prompts où ça n'apporte rien.
+        let sentiment = null;
+        if (analysis.snapdesk_mentioned) {
+          const context = getSnapdeskContext(rawResponse);
+          sentiment = await withRetry(() => analyzeSentiment(context));
+        }
+
+        const geoScore = computeGeoScore({
+          mentioned: analysis.snapdesk_mentioned,
+          position: analysis.snapdesk_position,
+          sentiment,
+        });
+
         insertResult({
           run_at: runAt,
           engine: engine.key,
@@ -66,6 +85,8 @@ async function runOnce() {
           raw_response: rawResponse,
           snapdesk_mentioned: analysis.snapdesk_mentioned,
           snapdesk_position: analysis.snapdesk_position,
+          snapdesk_sentiment: sentiment,
+          geo_score: geoScore,
           competitors_mentioned: JSON.stringify(analysis.competitors_mentioned),
           error: null,
         });
@@ -83,6 +104,8 @@ async function runOnce() {
           raw_response: null,
           snapdesk_mentioned: 0,
           snapdesk_position: null,
+          snapdesk_sentiment: null,
+          geo_score: 0,
           competitors_mentioned: "[]",
           error: err.message,
         });

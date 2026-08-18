@@ -119,17 +119,32 @@ d'exploitation.
   run complet par mois. Pour un run hebdomadaire sur les 100 prompts, il
   faudra passer sur un plan payant.
 
+## Score GEO et sentiment
+
+En plus du simple taux de citation, chaque résultat calcule :
+
+- **`snapdesk_sentiment`** : quand Snapdesk est cité, Claude évalue le ton du
+  passage (`positive` / `neutral` / `negative`) — voir `backend/src/sentiment.js`.
+  Pas d'appel supplémentaire quand Snapdesk n'est pas cité, pour limiter les coûts.
+- **`geo_score`** (0 à 100) : combine présence + rang d'apparition + sentiment
+  en un seul chiffre par résultat (voir `backend/src/score.js` pour le détail
+  du calcul). Affiché par moteur dans le dashboard et exposé par
+  `/api/timeseries` et `/api/latest-summary`.
+
+Le dashboard affiche aussi la répartition du sentiment des mentions du
+dernier run, et un bouton **Exporter en CSV** (endpoint `GET /api/export.csv`,
+avec un paramètre optionnel `?run_at=...` pour un seul run) qui télécharge
+les résultats bruts.
+
 ## Pour aller plus loin (idées d'amélioration futures)
 
-- **Analyse de sentiment** : au-delà de "Snapdesk est cité ou non", demander
-  à un LLM d'évaluer si la mention est positive, neutre ou négative.
-- **Alertes** : envoyer un message Slack/email si le taux de citation chute
-  fortement d'une semaine à l'autre.
-- **Export CSV** : ajouter un bouton d'export des résultats bruts pour les
-  partager en dehors du dashboard.
+- **Alertes** : envoyer un message Slack/email si le taux de citation ou le
+  score GEO chute fortement d'une semaine à l'autre.
 - **Variantes de prompts** : reformuler automatiquement chaque prompt (via un
   LLM) pour tester plusieurs façons de poser la même question, plus robuste
   qu'une liste figée de 100 prompts.
+- **Protection de l'API** : `backend/src/api.js` n'a pas d'authentification
+  ni de restriction CORS — à ajouter avant tout déploiement public.
 
 ## Où sont mes 100 prompts et ma liste de concurrents ?
 

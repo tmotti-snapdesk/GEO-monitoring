@@ -28,14 +28,27 @@ db.exec(`
   );
 `);
 
+// Migrations additives (idempotentes) pour les bases créées avant l'ajout du
+// scoring sentiment — évite de casser les data.sqlite déjà existants.
+function ensureColumn(table, column, type) {
+  const existing = db.prepare(`PRAGMA table_info(${table})`).all();
+  if (!existing.some((c) => c.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+  }
+}
+ensureColumn("results", "snapdesk_sentiment", "TEXT"); // 'positive' | 'neutral' | 'negative' | NULL si pas cité
+ensureColumn("results", "geo_score", "REAL"); // score 0-100 combinant présence + rang + sentiment, voir score.js
+
 export function insertResult(row) {
   const stmt = db.prepare(`
     INSERT INTO results (
       run_at, engine, prompt_id, prompt_category, prompt_text,
-      raw_response, snapdesk_mentioned, snapdesk_position, competitors_mentioned, error
+      raw_response, snapdesk_mentioned, snapdesk_position, snapdesk_sentiment,
+      geo_score, competitors_mentioned, error
     ) VALUES (
       @run_at, @engine, @prompt_id, @prompt_category, @prompt_text,
-      @raw_response, @snapdesk_mentioned, @snapdesk_position, @competitors_mentioned, @error
+      @raw_response, @snapdesk_mentioned, @snapdesk_position, @snapdesk_sentiment,
+      @geo_score, @competitors_mentioned, @error
     )
   `);
   stmt.run(row);
