@@ -1,19 +1,37 @@
 # Snapdesk GEO Monitor
 
 Outil de suivi de la visibilité de **Snapdesk** dans les réponses des moteurs
-IA (ChatGPT, Claude, Google AI Overview), face aux concurrents directs
+IA (ChatGPT, Claude, Google AI Overview, Gemini), face aux concurrents directs
 (WeWork, Wojo, Morning, Spaces, Kwerk, Deskeo, Come and Work, Sora, LNB) et
 indirects (Flashoffice, OfficeRiders, Spliit, Ubiq, JLL, Leaseo), sur 100
 requêtes représentatives du marché des bureaux flexibles à Paris intramuros.
 
 ## Comment ça marche, en une phrase
 
-Un script Node.js pose les 100 questions à ChatGPT, Claude et Google (via
-SerpApi) — les 3 avec un accès web en direct, pour coller à ce qu'un vrai
-utilisateur voit aujourd'hui — regarde si "Snapdesk" apparaît dans chaque
-réponse et à quelle position, stocke tout dans un fichier de base de données
-local (`backend/data.sqlite`), et un site Next.js affiche l'évolution de ces
+Un script Node.js pose les 100 questions aux moteurs activés (ChatGPT, Claude,
+Google AI Overview via SerpApi, et/ou Gemini — voir `ENGINES_ENABLED` plus bas)
+— tous avec un accès web en direct, pour coller à ce qu'un vrai utilisateur
+voit aujourd'hui — regarde si "Snapdesk" apparaît dans chaque réponse et à
+quelle position, stocke tout dans un fichier de base de données local
+(`backend/data.sqlite`), et un site Next.js affiche l'évolution de ces
 chiffres dans un dashboard.
+
+### Google AI Overview vs Gemini : deux surfaces différentes
+
+Ce sont deux choses distinctes, toutes les deux utiles mais pas
+interchangeables :
+
+- **Google AI Overview** (`engines/serpapi.js`, via un compte SerpApi) : le
+  résumé généré par IA qui apparaît en haut des résultats de recherche
+  Google classique — la surface avec le plus de volume pour ce type de
+  recherche, mais qui demande un compte SerpApi (gratuit à 100 requêtes/mois).
+- **Gemini** (`engines/gemini.js`, via une clé Google AI Studio) : le chatbot
+  Gemini interrogé directement, comme ChatGPT/Claude. API officielle simple à
+  obtenir, mais mesure un usage différent (le chatbot, pas la recherche Google).
+
+Si tu n'as pas encore de compte SerpApi, tu peux démarrer avec Gemini (clé
+gratuite sur [aistudio.google.com/apikey](https://aistudio.google.com/apikey))
+et ajouter Google AI Overview plus tard sans rien casser.
 
 ## Méthodologie : pourquoi les résultats ne sont pas biaisés par un historique
 
@@ -89,7 +107,9 @@ Tu as besoin de [Node.js](https://nodejs.org/) installé sur ta machine
 cd backend
 npm install
 cp .env.example .env
-# → ouvre .env et colle tes vraies clés API (OpenAI, Anthropic, SerpApi)
+# → ouvre .env et colle tes vraies clés API (OpenAI, Anthropic, SerpApi, Gemini)
+# → si tu n'as pas encore toutes les clés, limite les moteurs testés avec
+#   ENGINES_ENABLED (ex: ENGINES_ENABLED=claude,gemini)
 
 # 2. Installer les dépendances du frontend
 cd ../frontend

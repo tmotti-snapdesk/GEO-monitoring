@@ -1,7 +1,8 @@
 // run.js
 // C'est le script "chef d'orchestre". Il :
 //  1. charge la liste des 100 prompts
-//  2. pour chaque prompt, interroge ChatGPT, Claude et Google AI Overview
+//  2. pour chaque prompt, interroge les moteurs activés (ChatGPT, Claude,
+//     Google AI Overview, Gemini — voir ENGINES_ENABLED dans .env)
 //  3. analyse chaque réponse (mention de Snapdesk ? position ? concurrents cités ?)
 //  4. si Snapdesk est cité, demande à Claude d'évaluer le sentiment de la mention
 //  5. calcule un score GEO combiné (voir score.js) et enregistre tout dans la
@@ -10,16 +11,18 @@
 // Lancement manuel :   npm run run-once
 // Lancement planifié :  npm run schedule   (voir scheduler.js)
 //
-// ATTENTION AUX COÛTS : 100 prompts x 3 moteurs = 300 appels API par exécution,
-// plus un appel Claude supplémentaire (léger) pour chaque résultat où Snapdesk
-// est cité. ChatGPT et Claude interrogent maintenant le web en direct (voir
-// engines/openai.js et anthropic.js) pour coller à ce qu'un vrai utilisateur
-// voit aujourd'hui — ça ajoute un coût par recherche en plus du coût par
-// token, en plus du coût SerpApi (plan gratuit à 100 requêtes/mois, vite
-// dépassé en hebdo sur 100 prompts). Vérifie les tarifs à jour sur
-// platform.openai.com/pricing et anthropic.com/pricing avant un premier run
-// complet. Deux options pour maîtriser les coûts :
-//   - ajuster START_INDEX / END_INDEX ci-dessous pour tourner sur un sous-ensemble
+// ATTENTION AUX COÛTS : 100 prompts x N moteurs activés = autant d'appels API
+// par exécution, plus un appel Claude supplémentaire (léger) pour chaque
+// résultat où Snapdesk est cité. ChatGPT, Claude et Gemini interrogent le web
+// en direct par défaut (voir engines/openai.js, anthropic.js, gemini.js) pour
+// coller à ce qu'un vrai utilisateur voit aujourd'hui — ça ajoute un coût par
+// recherche en plus du coût par token. Vérifie les tarifs à jour avant un
+// premier run complet : platform.openai.com/pricing, anthropic.com/pricing,
+// ai.google.dev/pricing, et serpapi.com/pricing pour Google AI Overview
+// (plan gratuit à 100 requêtes/mois, vite dépassé en hebdo sur 100 prompts).
+// Pour maîtriser les coûts :
+//   - ENGINES_ENABLED dans .env pour ne tester qu'un sous-ensemble de moteurs
+//   - START_INDEX / END_INDEX ci-dessous pour tourner sur un sous-ensemble de prompts
 //   - passer sur des plans payants une fois que le POC te convainc
 
 import "dotenv/config";
@@ -27,6 +30,7 @@ import promptsData from "../config/prompts.json" with { type: "json" };
 import { askChatGPT } from "./engines/openai.js";
 import { askClaude } from "./engines/anthropic.js";
 import { getGoogleAIOverview } from "./engines/serpapi.js";
+import { askGemini } from "./engines/gemini.js";
 import { analyzeResponse, getSnapdeskContext } from "./analyze.js";
 import { analyzeSentiment } from "./sentiment.js";
 import { computeGeoScore } from "./score.js";
@@ -37,11 +41,33 @@ import { withRetry } from "./utils/retry.js";
 const START_INDEX = 0;
 const END_INDEX = promptsData.length; // 100 par défaut
 
-const ENGINES = [
+const ALL_ENGINES = [
   { key: "chatgpt", fn: askChatGPT },
   { key: "claude", fn: askClaude },
   { key: "google_ai_overview", fn: getGoogleAIOverview },
+  { key: "gemini", fn: askGemini },
 ];
+
+// Pour tester avec un sous-ensemble de moteurs (ex: sans ChatGPT/AI Overview
+// le temps de valider le reste, ou si tu n'as pas encore de clé SerpApi),
+// liste leurs clés séparées par des virgules dans .env :
+//   ENGINES_ENABLED=claude,gemini
+// Vide/absent = les 4 moteurs.
+const enabledKeys = (process.env.ENGINES_ENABLED || "")
+  .split(",")
+  .map((k) => k.trim())
+  .filter(Boolean);
+
+const ENGINES = enabledKeys.length
+  ? ALL_ENGINES.filter((e) => enabledKeys.includes(e.key))
+  : ALL_ENGINES;
+
+if (enabledKeys.length && ENGINES.length !== enabledKeys.length) {
+  const unknown = enabledKeys.filter((k) => !ALL_ENGINES.some((e) => e.key === k));
+  console.warn(
+    `Attention : clé(s) inconnue(s) dans ENGINES_ENABLED (ignorée(s)) : ${unknown.join(", ")}`
+  );
+}
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));

@@ -16,12 +16,14 @@ const ENGINE_LABELS = {
   chatgpt: "ChatGPT",
   claude: "Claude",
   google_ai_overview: "Google AI Overview",
+  gemini: "Gemini",
 };
 
 const ENGINE_COLORS = {
   chatgpt: "#74aa9c",
   claude: "#d97757",
   google_ai_overview: "#4285f4",
+  gemini: "#a78bfa",
 };
 
 const SENTIMENT_LABELS = {
