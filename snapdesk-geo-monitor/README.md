@@ -9,9 +9,10 @@ requêtes représentatives du marché des bureaux flexibles à Paris intramuros.
 ## Comment ça marche, en une phrase
 
 Un script Node.js pose les 100 questions à ChatGPT, Claude et Google (via
-SerpApi), regarde si "Snapdesk" apparaît dans chaque réponse et à quelle
-position, stocke tout dans un fichier de base de données local
-(`backend/data.sqlite`), et un site Next.js affiche l'évolution de ces
+SerpApi) — les 3 avec un accès web en direct, pour coller à ce qu'un vrai
+utilisateur voit aujourd'hui — regarde si "Snapdesk" apparaît dans chaque
+réponse et à quelle position, stocke tout dans un fichier de base de données
+local (`backend/data.sqlite`), et un site Next.js affiche l'évolution de ces
 chiffres dans un dashboard.
 
 ## Méthodologie : pourquoi les résultats ne sont pas biaisés par un historique
@@ -38,15 +39,25 @@ de conversation, sans "mémoire" de compte. Concrètement :
 Deux nuances à garder en tête, différentes d'un "biais d'historique" :
 
 - **Bruit statistique** : deux appels identiques peuvent renvoyer des réponses
-  légèrement différentes (température par défaut du modèle) — c'est normal et
-  représentatif de ce que verrait un vrai utilisateur. La lecture fiable se
-  fait sur la tendance dans le temps (plusieurs runs), pas sur un run isolé.
-- **Connaissance "brute" vs navigation web activée** : ChatGPT/Claude sont
-  interrogés ici sans accès web (voir commentaire dans `openai.js`), donc ça
-  mesure la connaissance du modèle, pas forcément ce qu'un utilisateur de
-  ChatGPT Plus avec navigation activée verrait. Google AI Overview (via
-  SerpApi), lui, reflète bien une vraie recherche web, sans compte Google
-  connecté donc sans personnalisation liée à un historique de recherche.
+  légèrement différentes (température par défaut du modèle, et maintenant
+  aussi la variabilité des résultats de recherche web à l'instant T) — c'est
+  normal et représentatif de ce que verrait un vrai utilisateur. La lecture
+  fiable se fait sur la tendance dans le temps (plusieurs runs), pas sur un
+  run isolé.
+- **Recherche web activée sur les 3 moteurs** : ChatGPT (`gpt-4o-search-preview`),
+  Claude (outil `web_search` côté serveur) et Google AI Overview (via SerpApi)
+  interrogent tous les 3 le web en direct, avec une localisation Paris/France
+  alignée entre les trois. Aucun des 3 n'utilise de compte connecté /
+  personnalisé — donc pas de personnalisation liée à un historique de
+  recherche ou de navigation individuel, seulement la variabilité normale
+  d'une recherche web "à froid" à l'instant du run.
+- **Rupture de série à surveiller** : le passage de "connaissance brute" à
+  "recherche web activée" pour ChatGPT/Claude change ce qui est mesuré. Si tu
+  avais déjà des runs historiques réalisés avant ce changement, attends-toi à
+  une possible marche (hausse ou baisse) sur le graphique le jour du switch —
+  ce n'est pas une vraie variation de visibilité, juste un changement de
+  méthodologie. Idéalement, note la date de bascule quelque part pour ne pas
+  la lire comme un événement business.
 
 ## Structure du projet
 
@@ -147,8 +158,13 @@ d'exploitation.
 
 ## Coûts à prévoir
 
-- **OpenAI / Anthropic** : quelques centimes à quelques euros par run complet
-  de 100 prompts, selon le modèle utilisé.
+- **OpenAI / Anthropic** : coût par token + un coût additionnel par recherche
+  web effectuée (ChatGPT et Claude ont maintenant un accès web activé par
+  défaut, voir "Méthodologie" plus haut). Vérifie les tarifs à jour sur
+  platform.openai.com/pricing et anthropic.com/pricing avant un premier run
+  complet — c'est plus cher qu'en mode "connaissance brute" (l'ancien
+  comportement, toujours disponible en repassant `OPENAI_MODEL=gpt-4o` et en
+  retirant l'outil `web_search` dans `anthropic.js`).
 - **SerpApi** : le plan gratuit inclut 100 requêtes/mois — donc tout juste 1
   run complet par mois. Pour un run hebdomadaire sur les 100 prompts, il
   faudra passer sur un plan payant.

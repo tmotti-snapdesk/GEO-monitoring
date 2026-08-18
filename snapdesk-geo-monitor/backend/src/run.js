@@ -12,11 +12,15 @@
 //
 // ATTENTION AUX COÛTS : 100 prompts x 3 moteurs = 300 appels API par exécution,
 // plus un appel Claude supplémentaire (léger) pour chaque résultat où Snapdesk
-// est cité. Sur OpenAI/Anthropic ça reste de l'ordre de quelques euros ; sur
-// SerpApi (plan gratuit à 100 requêtes/mois) tu dépasseras vite le quota
-// gratuit si tu lances ça chaque semaine sur les 100 prompts. Deux options :
+// est cité. ChatGPT et Claude interrogent maintenant le web en direct (voir
+// engines/openai.js et anthropic.js) pour coller à ce qu'un vrai utilisateur
+// voit aujourd'hui — ça ajoute un coût par recherche en plus du coût par
+// token, en plus du coût SerpApi (plan gratuit à 100 requêtes/mois, vite
+// dépassé en hebdo sur 100 prompts). Vérifie les tarifs à jour sur
+// platform.openai.com/pricing et anthropic.com/pricing avant un premier run
+// complet. Deux options pour maîtriser les coûts :
 //   - ajuster START_INDEX / END_INDEX ci-dessous pour tourner sur un sous-ensemble
-//   - passer sur un plan SerpApi payant une fois que le POC te convainc
+//   - passer sur des plans payants une fois que le POC te convainc
 
 import "dotenv/config";
 import promptsData from "../config/prompts.json" with { type: "json" };
