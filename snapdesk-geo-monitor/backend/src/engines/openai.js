@@ -14,6 +14,13 @@ export async function askChatGPT(promptText) {
     // On désactive la recherche web pour mesurer la connaissance "brute" du modèle.
     // Si tu veux plutôt mesurer ce que ChatGPT dit QUAND il a accès au web,
     // remplace ce modèle par un modèle avec recherche (ex: "gpt-4o-search-preview").
+    //
+    // store: false => la réponse n'est pas conservée côté OpenAI pour de
+    // l'évaluation/distillation de modèle. Sans lien avec un éventuel biais
+    // d'historique (l'API est de toute façon sans état, voir README), c'est
+    // une précaution de confidentialité : ces prompts et réponses contiennent
+    // de l'intelligence concurrentielle qu'on ne veut pas voir traînée ailleurs.
+    store: false,
   });
 
   return response.choices[0]?.message?.content ?? "";

@@ -14,6 +14,40 @@ position, stocke tout dans un fichier de base de données local
 (`backend/data.sqlite`), et un site Next.js affiche l'évolution de ces
 chiffres dans un dashboard.
 
+## Méthodologie : pourquoi les résultats ne sont pas biaisés par un historique
+
+Chaque appel à ChatGPT et Claude (`backend/src/engines/openai.js` et
+`anthropic.js`) est **une requête API strictement sans état** : un seul
+message utilisateur (le prompt), sans aucun message système, sans historique
+de conversation, sans "mémoire" de compte. Concrètement :
+
+- La fonctionnalité "Mémoire" de ChatGPT/Claude (qui retient des infos d'une
+  conversation à l'autre) n'existe que dans les applis grand public (chat.openai.com,
+  claude.ai) liées à un compte utilisateur — elle ne s'applique pas quand on
+  appelle l'API brute comme le fait ce script, quelle que soit la clé API utilisée.
+- Chaque prompt du run est envoyé dans un appel API totalement indépendant :
+  le modèle ne "voit" ni les 99 autres prompts du même run, ni les runs
+  précédents, ni aucune conversation passée sur la clé API utilisée.
+- Aucun prompt système n'oriente le modèle vers Snapdesk ou le contexte de ce
+  monitoring — les 100 prompts sont posés "à froid", comme le ferait un
+  prospect anonyme qui découvre le sujet.
+- Côté OpenAI, `store: false` est explicitement passé pour éviter que ces
+  échanges (qui contiennent de l'intelligence concurrentielle) soient
+  conservés côté OpenAI au-delà du traitement de la requête.
+
+Deux nuances à garder en tête, différentes d'un "biais d'historique" :
+
+- **Bruit statistique** : deux appels identiques peuvent renvoyer des réponses
+  légèrement différentes (température par défaut du modèle) — c'est normal et
+  représentatif de ce que verrait un vrai utilisateur. La lecture fiable se
+  fait sur la tendance dans le temps (plusieurs runs), pas sur un run isolé.
+- **Connaissance "brute" vs navigation web activée** : ChatGPT/Claude sont
+  interrogés ici sans accès web (voir commentaire dans `openai.js`), donc ça
+  mesure la connaissance du modèle, pas forcément ce qu'un utilisateur de
+  ChatGPT Plus avec navigation activée verrait. Google AI Overview (via
+  SerpApi), lui, reflète bien une vraie recherche web, sans compte Google
+  connecté donc sans personnalisation liée à un historique de recherche.
+
 ## Structure du projet
 
 ```
