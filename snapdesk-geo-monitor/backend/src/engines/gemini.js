@@ -13,7 +13,7 @@ const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export async function askGemini(promptText) {
   const response = await client.models.generateContent({
-    model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+    model: process.env.GEMINI_MODEL || "gemini-3.6-flash",
     contents: promptText,
     config: {
       // Active la recherche web (grounding), pour coller à ce qu'un vrai
