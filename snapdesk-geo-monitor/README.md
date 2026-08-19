@@ -206,9 +206,32 @@ les lundis à 6h UTC. Pour tester sans attendre : onglet **Actions** du repo >
 - Ajoute les variables d'environnement `TURSO_DATABASE_URL` et
   `TURSO_AUTH_TOKEN` (mêmes valeurs que les secrets GitHub) dans les
   paramètres du projet Vercel.
+- (Optionnel) ajoute `GITHUB_TOKEN` pour activer le bouton **"Lancer un run"**
+  du dashboard — voir ci-dessous.
 - Déploie. Le dashboard lit directement la base Turso — pas besoin de
   redéployer après chaque run GitHub Actions, les nouvelles données
   apparaissent au prochain chargement de page.
+
+### Lancer un run depuis le dashboard
+
+Le dashboard a un bouton pour déclencher un run sans passer par l'onglet
+GitHub Actions — deux presets : un test rapide (5 prompts, Claude + Gemini)
+et un run complet (100 prompts, tous les moteurs activés, avec confirmation
+avant de lancer vu le coût).
+
+Pour l'activer : crée un *fine-grained personal access token* sur GitHub
+(Settings de ton compte > Developer settings > Personal access tokens >
+Fine-grained tokens), limité au repo `GEO-monitoring`, avec la permission
+**Actions: Read and write**. Ajoute-le comme variable d'environnement
+`GITHUB_TOKEN` sur Vercel (et dans `frontend/.env.local` si tu veux tester en
+local).
+
+⚠️ Comme le reste de l'API (voir "Pour aller plus loin" plus bas), ce bouton
+n'est pas authentifié — n'importe qui avec l'URL du dashboard peut cliquer
+dessus. Un garde-fou est en place (`frontend/pages/api/trigger-run.js` refuse
+un nouveau déclenchement moins de 30 min après le précédent), mais ça ne
+remplace pas une vraie protection d'accès si le dashboard devient sensible
+(voir la note sur la protection Vercel plus bas).
 
 ## Coûts à prévoir
 

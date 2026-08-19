@@ -54,11 +54,17 @@ function pivotTimeseries(rows) {
   return Object.values(byDate);
 }
 
+const TRIGGER_COOLDOWN_KEY = "geo-monitor:last-trigger";
+const TRIGGER_COOLDOWN_MINUTES = 30;
+
 export default function Dashboard() {
   const [summary, setSummary] = useState(null);
   const [timeseries, setTimeseries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [triggering, setTriggering] = useState(false);
+  const [triggerStatus, setTriggerStatus] = useState(null);
+  const [cooldownUntil, setCooldownUntil] = useState(null);
 
   useEffect(() => {
     Promise.all([
@@ -71,7 +77,50 @@ export default function Dashboard() {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+
+    // Garde-fou côté navigateur en plus de celui côté serveur : évite les
+    // double-clics accidentels pendant que le run précédent n'a pas encore
+    // écrit de résultats en base (le serveur ne peut pas encore le détecter).
+    const last = Number(localStorage.getItem(TRIGGER_COOLDOWN_KEY) || 0);
+    const until = last + TRIGGER_COOLDOWN_MINUTES * 60 * 1000;
+    if (until > Date.now()) setCooldownUntil(until);
   }, []);
+
+  async function triggerRun(preset) {
+    if (
+      preset === "full" &&
+      !window.confirm(
+        "Lancer un run complet (100 prompts x tous les moteurs activés) ? Ça consomme du crédit API réel sur OpenAI/Anthropic/Gemini/SerpApi."
+      )
+    ) {
+      return;
+    }
+
+    setTriggering(true);
+    setTriggerStatus(null);
+    const body =
+      preset === "quick" ? { enginesEnabled: "claude,gemini", promptEndIndex: 5 } : {};
+
+    try {
+      const res = await fetch("/api/trigger-run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erreur inconnue");
+      setTriggerStatus({ type: "success", message: data.message });
+      const until = Date.now() + TRIGGER_COOLDOWN_MINUTES * 60 * 1000;
+      localStorage.setItem(TRIGGER_COOLDOWN_KEY, String(Date.now()));
+      setCooldownUntil(until);
+    } catch (err) {
+      setTriggerStatus({ type: "error", message: err.message });
+    } finally {
+      setTriggering(false);
+    }
+  }
+
+  const onCooldown = cooldownUntil && cooldownUntil > Date.now();
 
   return (
     <div className="container">
@@ -87,6 +136,37 @@ export default function Dashboard() {
         <a className="button" href="/api/export.csv">
           Exporter en CSV
         </a>
+      </div>
+
+      <div className="section trigger-section">
+        <h2>Lancer un run</h2>
+        <div className="trigger-buttons">
+          <button
+            className="button button-secondary"
+            disabled={triggering || onCooldown}
+            onClick={() => triggerRun("quick")}
+          >
+            Test rapide (5 prompts, Claude + Gemini)
+          </button>
+          <button
+            className="button"
+            disabled={triggering || onCooldown}
+            onClick={() => triggerRun("full")}
+          >
+            Run complet (100 prompts, tous les moteurs)
+          </button>
+        </div>
+        {onCooldown && !triggerStatus && (
+          <p className="empty">
+            Un run vient d'être déclenché — nouveau déclenchement possible dans{" "}
+            {Math.ceil((cooldownUntil - Date.now()) / 60000)} min.
+          </p>
+        )}
+        {triggerStatus && (
+          <p className={triggerStatus.type === "error" ? "trigger-error" : "trigger-success"}>
+            {triggerStatus.message}
+          </p>
+        )}
       </div>
 
       {loading && <p className="empty">Chargement des résultats...</p>}
