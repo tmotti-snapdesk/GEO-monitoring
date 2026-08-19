@@ -1,22 +1,33 @@
 // db.js
-// Gère la base de données locale (SQLite = une simple base de données stockée
-// dans un fichier, pas besoin d'installer de serveur de base de données à part).
+// Gère la base de données. Même client (@libsql/client) pour les deux cas :
+//  - en local, sans TURSO_DATABASE_URL : un simple fichier SQLite
+//    (backend/data.sqlite), comme avant, aucun compte requis.
+//  - en prod (le run hebdo tourne sur GitHub Actions) : la base Turso
+//    hébergée, pour que Vercel puisse lire les mêmes données pour le
+//    dashboard (voir frontend/lib/db.js et le README pour la mise en place).
 // Chaque exécution du monitoring ajoute des lignes dans la table "results".
 
-import Database from "better-sqlite3";
+import { createClient } from "@libsql/client";
 import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const dbPath = path.join(__dirname, "..", "data.sqlite");
+const localDbPath = path.join(__dirname, "..", "data.sqlite");
 
-export const db = new Database(dbPath);
+export const db = createClient(
+  process.env.TURSO_DATABASE_URL
+    ? {
+        url: process.env.TURSO_DATABASE_URL,
+        authToken: process.env.TURSO_AUTH_TOKEN,
+      }
+    : { url: `file:${localDbPath}` }
+);
 
-db.exec(`
+await db.execute(`
   CREATE TABLE IF NOT EXISTS results (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     run_at TEXT NOT NULL,           -- date/heure de l'exécution (ISO)
-    engine TEXT NOT NULL,           -- 'chatgpt' | 'claude' | 'google_ai_overview'
+    engine TEXT NOT NULL,           -- 'chatgpt' | 'claude' | 'google_ai_overview' | 'gemini'
     prompt_id INTEGER NOT NULL,     -- référence vers config/prompts.json
     prompt_category TEXT NOT NULL,
     prompt_text TEXT NOT NULL,
@@ -28,15 +39,39 @@ db.exec(`
   );
 `);
 
-export function insertResult(row) {
-  const stmt = db.prepare(`
-    INSERT INTO results (
-      run_at, engine, prompt_id, prompt_category, prompt_text,
-      raw_response, snapdesk_mentioned, snapdesk_position, competitors_mentioned, error
-    ) VALUES (
-      @run_at, @engine, @prompt_id, @prompt_category, @prompt_text,
-      @raw_response, @snapdesk_mentioned, @snapdesk_position, @competitors_mentioned, @error
-    )
-  `);
-  stmt.run(row);
+// Migrations additives (idempotentes) pour les bases créées avant l'ajout du
+// scoring sentiment — évite de casser les bases déjà existantes.
+async function ensureColumn(table, column, type) {
+  const { rows } = await db.execute(`PRAGMA table_info(${table})`);
+  if (!rows.some((c) => c.name === column)) {
+    await db.execute(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+  }
+}
+await ensureColumn("results", "snapdesk_sentiment", "TEXT"); // 'positive' | 'neutral' | 'negative' | NULL si pas cité
+await ensureColumn("results", "geo_score", "REAL"); // score 0-100 combinant présence + rang + sentiment, voir score.js
+
+export async function insertResult(row) {
+  await db.execute({
+    sql: `
+      INSERT INTO results (
+        run_at, engine, prompt_id, prompt_category, prompt_text,
+        raw_response, snapdesk_mentioned, snapdesk_position, snapdesk_sentiment,
+        geo_score, competitors_mentioned, error
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+    args: [
+      row.run_at,
+      row.engine,
+      row.prompt_id,
+      row.prompt_category,
+      row.prompt_text,
+      row.raw_response,
+      row.snapdesk_mentioned,
+      row.snapdesk_position,
+      row.snapdesk_sentiment,
+      row.geo_score,
+      row.competitors_mentioned,
+      row.error,
+    ],
+  });
 }

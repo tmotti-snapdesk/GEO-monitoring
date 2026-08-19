@@ -22,8 +22,91 @@ h1 {
 
 .subtitle {
   color: #9a9ea6;
-  margin-bottom: 32px;
+  margin-bottom: 0;
   font-size: 14px;
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+
+.button {
+  display: inline-block;
+  background: #d97757;
+  color: #0f1115;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.button:hover {
+  opacity: 0.9;
+}
+
+.score-badge {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #d97757;
+  font-weight: 600;
+}
+
+.sentiment-bar {
+  display: flex;
+  height: 10px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.sentiment-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #9a9ea6;
+}
+
+.sentiment-legend .dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.hero-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.hero-card {
+  background: linear-gradient(160deg, #1c2029, #171a21);
+  border: 1px solid #d97757;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.hero-card .value,
+.hero-card .hero-value {
+  font-size: 44px;
+  font-weight: 700;
+  margin: 8px 0;
+  color: #d97757;
+}
+
+.hero-card .label {
+  font-size: 13px;
+  color: #9a9ea6;
 }
 
 .cards {

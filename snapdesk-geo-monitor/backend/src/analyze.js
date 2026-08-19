@@ -11,23 +11,65 @@
 
 import competitors from "../config/competitors.json" with { type: "json" };
 
-const ALL_COMPETITOR_NAMES = [
+// Une entrée de competitors.json peut être soit un simple nom ("WeWork"), soit
+// un objet { name, aliases } quand une marque a plusieurs façons d'être citée
+// (ex : "Les Nouveaux Bureaux" / "LNB") — dans ce cas toutes les variantes
+// comptent pour UNE seule mention, sous le nom canonique "name".
+function normalizeEntry(entry) {
+  return typeof entry === "string"
+    ? { name: entry, aliases: [] }
+    : { name: entry.name, aliases: entry.aliases || [] };
+}
+
+const ALL_COMPETITOR_ENTRIES = [
   ...competitors.categories.direct_coworking,
   ...competitors.categories.direct_operators,
   ...competitors.categories.indirect_brokers,
-];
+].map(normalizeEntry);
 
-function findAllMentions(text, names) {
-  // Renvoie [{ name, index }] triés par ordre d'apparition dans le texte
+function escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// Position de la première occurrence de `term` dans `text`, avec des limites de
+// mot (\b) pour éviter qu'un nom court comme "Sora" ne matche à l'intérieur d'un
+// autre mot. -1 si absent.
+function findFirstIndex(text, term) {
+  const pattern = new RegExp(`\\b${escapeRegExp(term)}\\b`, "i");
+  const match = pattern.exec(text);
+  return match ? match.index : -1;
+}
+
+// Renvoie [{ name, index }] triés par ordre d'apparition dans le texte. Pour une
+// entrée avec alias, on garde la position de la variante qui apparaît en premier.
+function findAllMentions(text, entries) {
   const found = [];
-  const lowerText = text.toLowerCase();
-  for (const name of names) {
-    const idx = lowerText.indexOf(name.toLowerCase());
-    if (idx !== -1) {
-      found.push({ name, index: idx });
+  for (const entry of entries) {
+    const terms = [entry.name, ...entry.aliases];
+    let bestIndex = -1;
+    for (const term of terms) {
+      const idx = findFirstIndex(text, term);
+      if (idx !== -1 && (bestIndex === -1 || idx < bestIndex)) {
+        bestIndex = idx;
+      }
+    }
+    if (bestIndex !== -1) {
+      found.push({ name: entry.name, index: bestIndex });
     }
   }
   return found.sort((a, b) => a.index - b.index);
+}
+
+// Extrait le passage de `text` autour de la mention de Snapdesk (± `radius`
+// caractères), pour donner du contexte à l'analyse de sentiment sans envoyer
+// toute la réponse brute au LLM. Si "Snapdesk" n'est pas trouvé, renvoie le
+// début du texte.
+export function getSnapdeskContext(text, radius = 400) {
+  const idx = findFirstIndex(text, "Snapdesk");
+  if (idx === -1) return text.slice(0, radius * 2);
+  const start = Math.max(0, idx - radius);
+  const end = Math.min(text.length, idx + "Snapdesk".length + radius);
+  return text.slice(start, end);
 }
 
 export function analyzeResponse(text) {
@@ -39,8 +81,8 @@ export function analyzeResponse(text) {
     };
   }
 
-  const allNames = ["Snapdesk", ...ALL_COMPETITOR_NAMES];
-  const mentions = findAllMentions(text, allNames);
+  const allEntries = [normalizeEntry("Snapdesk"), ...ALL_COMPETITOR_ENTRIES];
+  const mentions = findAllMentions(text, allEntries);
 
   const snapdeskIndexInList = mentions.findIndex(
     (m) => m.name.toLowerCase() === "snapdesk"

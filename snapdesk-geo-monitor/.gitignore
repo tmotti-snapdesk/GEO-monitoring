@@ -1,0 +1,16 @@
+node_modules/
+
+# Secrets locaux (ne jamais committer les vraies clés API)
+.env
+.env.local
+.env.*.local
+
+# Base de données locale générée par les runs de monitoring
+backend/data.sqlite
+
+# Build Next.js
+frontend/.next/
+frontend/out/
+
+# Logs
+npm-debug.log*

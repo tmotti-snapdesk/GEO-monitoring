@@ -10,18 +10,30 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-
 const ENGINE_LABELS = {
   chatgpt: "ChatGPT",
   claude: "Claude",
   google_ai_overview: "Google AI Overview",
+  gemini: "Gemini",
 };
 
 const ENGINE_COLORS = {
   chatgpt: "#74aa9c",
   claude: "#d97757",
   google_ai_overview: "#4285f4",
+  gemini: "#a78bfa",
+};
+
+const SENTIMENT_LABELS = {
+  positive: "Positif",
+  neutral: "Neutre",
+  negative: "Négatif",
+};
+
+const SENTIMENT_COLORS = {
+  positive: "#4caf7d",
+  neutral: "#9a9ea6",
+  negative: "#e25c5c",
 };
 
 function formatDate(iso) {
@@ -50,8 +62,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     Promise.all([
-      fetch(`${API_URL}/api/latest-summary`).then((r) => r.json()),
-      fetch(`${API_URL}/api/timeseries`).then((r) => r.json()),
+      fetch(`/api/latest-summary`).then((r) => r.json()),
+      fetch(`/api/timeseries`).then((r) => r.json()),
     ])
       .then(([summaryData, timeseriesData]) => {
         setSummary(summaryData);
@@ -63,17 +75,24 @@ export default function Dashboard() {
 
   return (
     <div className="container">
-      <h1>Snapdesk — Suivi GEO</h1>
-      <p className="subtitle">
-        Visibilité de Snapdesk dans ChatGPT, Claude et Google AI Overview, sur 100
-        requêtes représentatives du marché des bureaux flexibles à Paris.
-      </p>
+      <div className="header-row">
+        <div>
+          <h1>Snapdesk — Suivi GEO</h1>
+          <p className="subtitle">
+            Visibilité de Snapdesk dans ChatGPT, Claude, Google AI Overview et
+            Gemini, sur 100 requêtes représentatives du marché des bureaux
+            flexibles à Paris.
+          </p>
+        </div>
+        <a className="button" href="/api/export.csv">
+          Exporter en CSV
+        </a>
+      </div>
 
       {loading && <p className="empty">Chargement des résultats...</p>}
       {error && (
         <p className="empty">
-          Impossible de contacter l'API ({API_URL}). Vérifie que le backend
-          tourne bien (`npm run api` dans le dossier backend). Détail : {error}
+          Erreur lors du chargement des résultats : {error}
         </p>
       )}
 
@@ -86,16 +105,50 @@ export default function Dashboard() {
 
       {summary && summary.run_at && (
         <>
-          <div className="cards">
-            {summary.byEngine.map((e) => (
-              <div className="card" key={e.engine}>
-                <div className="label">{ENGINE_LABELS[e.engine] || e.engine}</div>
-                <div className="value">{e.citation_rate}%</div>
-                <div className="label">
-                  {e.snapdesk_mentions} / {e.total_prompts} prompts
-                </div>
+          <div className="hero-cards">
+            <div className="hero-card">
+              <div className="label">Score GEO global</div>
+              <div className="hero-value">{summary.overall.geo_score}</div>
+              <div className="label">
+                sur 100 — synthèse des {summary.overall.total_results} résultats
+                (100 prompts x {summary.byEngine.length} moteurs)
               </div>
-            ))}
+            </div>
+            <div className="hero-card">
+              <div className="label">Taux de citation global</div>
+              <div className="hero-value">{summary.overall.citation_rate}%</div>
+              <div className="label">
+                {summary.overall.total_mentions} / {summary.overall.total_results}{" "}
+                résultats mentionnent Snapdesk
+              </div>
+            </div>
+            <div className="hero-card">
+              <div className="label">Score de sentiment global</div>
+              <div className="hero-value">
+                {summary.overall.sentiment_score ?? "—"}
+              </div>
+              <div className="label">
+                {summary.overall.sentiment_score === null
+                  ? "aucune mention à évaluer sur ce run"
+                  : "sur 100 — moyenne des mentions (positif=100, neutre=50, négatif=0)"}
+              </div>
+            </div>
+          </div>
+
+          <div className="section">
+            <h2>Détail par moteur</h2>
+            <div className="cards">
+              {summary.byEngine.map((e) => (
+                <div className="card" key={e.engine}>
+                  <div className="label">{ENGINE_LABELS[e.engine] || e.engine}</div>
+                  <div className="value">{e.citation_rate}%</div>
+                  <div className="label">
+                    {e.snapdesk_mentions} / {e.total_prompts} prompts
+                  </div>
+                  <div className="score-badge">Score GEO : {e.avg_geo_score} / 100</div>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="section">
@@ -128,6 +181,48 @@ export default function Dashboard() {
                   ))}
                 </LineChart>
               </ResponsiveContainer>
+            )}
+          </div>
+
+          <div className="section">
+            <h2>Sentiment des mentions de Snapdesk (dernier run)</h2>
+            {summary.sentimentBreakdown.length === 0 ? (
+              <p className="empty">
+                Aucune mention de Snapdesk à analyser sur ce run.
+              </p>
+            ) : (
+              <>
+                <div className="sentiment-bar">
+                  {summary.sentimentBreakdown.map((s) => {
+                    const total = summary.sentimentBreakdown.reduce(
+                      (sum, x) => sum + x.count,
+                      0
+                    );
+                    const pct = total ? (s.count / total) * 100 : 0;
+                    return (
+                      <div
+                        key={s.sentiment || "unknown"}
+                        style={{
+                          width: `${pct}%`,
+                          background: SENTIMENT_COLORS[s.sentiment] || "#555",
+                        }}
+                        title={`${SENTIMENT_LABELS[s.sentiment] || s.sentiment}: ${s.count}`}
+                      />
+                    );
+                  })}
+                </div>
+                <div className="sentiment-legend">
+                  {summary.sentimentBreakdown.map((s) => (
+                    <span key={s.sentiment || "unknown"}>
+                      <span
+                        className="dot"
+                        style={{ background: SENTIMENT_COLORS[s.sentiment] || "#555" }}
+                      />
+                      {SENTIMENT_LABELS[s.sentiment] || s.sentiment} ({s.count})
+                    </span>
+                  ))}
+                </div>
+              </>
             )}
           </div>
 
