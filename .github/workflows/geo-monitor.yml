@@ -10,11 +10,13 @@ name: GEO Monitor - run hebdomadaire
 #     Actions du repo GitHub : TURSO_DATABASE_URL, TURSO_AUTH_TOKEN,
 #     OPENAI_API_KEY, ANTHROPIC_API_KEY, SERPAPI_API_KEY, GEMINI_API_KEY.
 #  3. (Optionnel) ajoute des "variables" (pas des secrets, non sensibles) pour
-#     ENGINES_ENABLED, OPENAI_MODEL, ANTHROPIC_MODEL, etc. si tu veux
-#     surcharger les valeurs par défaut du code.
+#     OPENAI_MODEL, ANTHROPIC_MODEL, etc. si tu veux surcharger les valeurs
+#     par défaut du code de façon permanente.
 #  4. Le workflow tourne automatiquement chaque lundi. Pour tester avant
-#     d'attendre le prochain lundi : onglet "Actions" du repo > ce workflow >
-#     "Run workflow" (déclenchement manuel via workflow_dispatch ci-dessous).
+#     d'attendre le prochain lundi, ou pour un run réduit (moins de moteurs /
+#     moins de prompts) : onglet "Actions" du repo > ce workflow >
+#     "Run workflow" — les 2 champs proposés permettent de limiter le test
+#     sans toucher au code ni ajouter de variable de repo.
 
 on:
   schedule:
@@ -22,7 +24,16 @@ on:
     # (contrairement à l'ancien node-cron qui utilisait l'heure du serveur) —
     # ajuste l'heure ci-dessous si tu veux viser une heure locale précise.
     - cron: "0 6 * * 1"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      engines_enabled:
+        description: 'Moteurs à tester, séparés par des virgules (ex: "claude,gemini"). Vide = tous.'
+        required: false
+        default: ""
+      prompt_end_index:
+        description: "Nombre de prompts à tester (ex: 5 pour un test rapide). Vide = 100 (tous)."
+        required: false
+        default: ""
 
 jobs:
   run-monitoring:
@@ -51,4 +62,7 @@ jobs:
           SERPAPI_API_KEY: ${{ secrets.SERPAPI_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
-          ENGINES_ENABLED: ${{ vars.ENGINES_ENABLED }}
+          # Priorité aux champs saisis lors d'un déclenchement manuel
+          # ("Run workflow"), sinon aux variables de repo permanentes.
+          ENGINES_ENABLED: ${{ inputs.engines_enabled || vars.ENGINES_ENABLED }}
+          PROMPT_END_INDEX: ${{ inputs.prompt_end_index || vars.PROMPT_END_INDEX }}
