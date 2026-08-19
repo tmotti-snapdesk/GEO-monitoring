@@ -34,6 +34,10 @@ on:
         description: "Nombre de prompts à tester (ex: 5 pour un test rapide). Vide = 100 (tous)."
         required: false
         default: ""
+      gemini_web_search:
+        description: 'Recherche web sur Gemini (met "false" pour la désactiver, ex: si erreur de quota 429).'
+        required: false
+        default: ""
 
 jobs:
   run-monitoring:
@@ -66,3 +70,4 @@ jobs:
           # ("Run workflow"), sinon aux variables de repo permanentes.
           ENGINES_ENABLED: ${{ inputs.engines_enabled || vars.ENGINES_ENABLED }}
           PROMPT_END_INDEX: ${{ inputs.prompt_end_index || vars.PROMPT_END_INDEX }}
+          GEMINI_WEB_SEARCH: ${{ inputs.gemini_web_search || vars.GEMINI_WEB_SEARCH }}
