@@ -38,9 +38,16 @@ import { computeGeoScore } from "./score.js";
 import { insertResult } from "./db.js";
 import { withRetry } from "./utils/retry.js";
 
-// Pour tester sur un petit lot avant de lancer les 100 : modifie ces deux valeurs.
-const START_INDEX = 0;
-const END_INDEX = promptsData.length; // 100 par défaut
+// Pour tester sur un petit lot avant de lancer les 100 : surcharge via les
+// variables d'env PROMPT_START_INDEX / PROMPT_END_INDEX (ex: PROMPT_END_INDEX=5
+// en variable de repo GitHub Actions, sans toucher au code), ou modifie ces
+// valeurs par défaut directement.
+const START_INDEX = process.env.PROMPT_START_INDEX
+  ? Number(process.env.PROMPT_START_INDEX)
+  : 0;
+const END_INDEX = process.env.PROMPT_END_INDEX
+  ? Number(process.env.PROMPT_END_INDEX)
+  : promptsData.length; // 100 par défaut
 
 const ALL_ENGINES = [
   { key: "chatgpt", fn: askChatGPT },
