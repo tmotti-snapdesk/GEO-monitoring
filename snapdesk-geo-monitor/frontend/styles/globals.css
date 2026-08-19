@@ -51,6 +51,41 @@ h1 {
   opacity: 0.9;
 }
 
+.button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+button.button {
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+button.button-secondary {
+  background: transparent;
+  color: #e8e8e8;
+  border: 1px solid #262a33;
+}
+
+.trigger-section .trigger-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.trigger-success {
+  color: #4caf7d;
+  font-size: 14px;
+  margin: 12px 0 0;
+}
+
+.trigger-error {
+  color: #e25c5c;
+  font-size: 14px;
+  margin: 12px 0 0;
+}
+
 .score-badge {
   margin-top: 10px;
   font-size: 13px;
